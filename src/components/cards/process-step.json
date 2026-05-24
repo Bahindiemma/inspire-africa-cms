@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_cards_process_steps",
+  "info": { "displayName": "Process step", "icon": "list-ol" },
+  "options": {},
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "body": { "type": "text", "required": true }
+  }
+}

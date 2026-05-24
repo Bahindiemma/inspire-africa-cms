@@ -1,0 +1,34 @@
+{
+  "collectionName": "components_shared_social_links",
+  "info": {
+    "displayName": "Social link",
+    "icon": "share-alt"
+  },
+  "options": {},
+  "attributes": {
+    "platform": {
+      "type": "enumeration",
+      "enum": [
+        "linkedin",
+        "facebook",
+        "twitter",
+        "instagram",
+        "youtube",
+        "tiktok",
+        "threads",
+        "whatsapp",
+        "other"
+      ],
+      "required": true
+    },
+    "label": { "type": "string", "required": true },
+    "url": { "type": "string", "required": true },
+    "handle": { "type": "string" },
+    "iconKey": {
+      "type": "string",
+      "default": "default",
+      "description": "Internal key used by the frontend to pick the icon component (e.g. 'LI', 'FB')."
+    },
+    "order": { "type": "integer", "default": 0 }
+  }
+}

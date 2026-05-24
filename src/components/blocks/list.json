@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_blocks_lists",
+  "info": { "displayName": "List", "icon": "list-ul" },
+  "options": {},
+  "attributes": {
+    "ordered": {
+      "type": "boolean",
+      "default": false,
+      "description": "true → renders as <ol> with decimal-leading-zero counter."
+    },
+    "items": { "type": "json", "required": true, "description": "Array of strings." }
+  }
+}

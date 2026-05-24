@@ -1,0 +1,105 @@
+# Render.com one-click blueprint.
+# Push this repo, then in Render dashboard: New → Blueprint → connect repo.
+#
+# IMPORTANT: Render does not offer managed MySQL. Provision MySQL
+# externally (DigitalOcean Managed MySQL / AWS RDS MySQL 8 / PlanetScale
+# — see docs/deployment.md §1) and paste the connection details into
+# the Render dashboard as the env vars marked `sync: false` below.
+#
+# If you'd rather use Render-managed Postgres instead, uncomment the
+# `databases:` block below and swap DATABASE_CLIENT to "postgres".
+
+# databases:
+#   - name: inspire-africa-cms-pg
+#     databaseName: strapi
+#     user: strapi
+#     plan: starter
+#     region: frankfurt
+
+services:
+  - type: web
+    name: inspire-africa-cms
+    runtime: node
+    region: frankfurt
+    plan: starter
+    branch: main
+    healthCheckPath: /_health
+    autoDeploy: true
+    buildCommand: npm ci --legacy-peer-deps && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 1337
+      # ---------- MySQL (external — provision per docs/deployment.md §1) ----------
+      - key: DATABASE_CLIENT
+        value: mysql
+      - key: DATABASE_HOST
+        sync: false
+      - key: DATABASE_PORT
+        value: 3306
+      - key: DATABASE_NAME
+        value: inspire_africa_cms
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: DATABASE_SSL
+        value: true
+      - key: DATABASE_SSL_REJECT_UNAUTHORIZED
+        value: true
+      # ---------- secrets — set via dashboard ----------
+      - key: APP_KEYS
+        sync: false
+      - key: ADMIN_JWT_SECRET
+        sync: false
+      - key: API_TOKEN_SALT
+        sync: false
+      - key: TRANSFER_TOKEN_SALT
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      # ---------- media ----------
+      - key: MEDIA_PROVIDER
+        value: aws-s3
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: eu-west-2
+      - key: AWS_BUCKET
+        sync: false
+      - key: AWS_CDN_BASE_URL
+        sync: false
+      # ---------- keycloak ----------
+      - key: KEYCLOAK_ENABLED
+        value: true
+      - key: KEYCLOAK_ISSUER_URL
+        sync: false
+      - key: KEYCLOAK_CLIENT_ID
+        sync: false
+      - key: KEYCLOAK_CLIENT_SECRET
+        sync: false
+      - key: KEYCLOAK_REDIRECT_URI
+        sync: false
+      # ---------- email ----------
+      - key: EMAIL_PROVIDER
+        value: sendgrid
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: EMAIL_FROM_ADDRESS
+        value: noreply@inspireafricans.com
+      # ---------- revalidation ----------
+      - key: FRONTEND_REVALIDATE_URL
+        sync: false
+      - key: REVALIDATE_SECRET
+        sync: false
+      # ---------- cors ----------
+      - key: CORS_ORIGINS
+        value: https://inspireafricans.com,https://www.inspireafricans.com,https://inspire-africa-website.vercel.app

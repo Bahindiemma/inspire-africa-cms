@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_sections_feature_lists",
+  "info": { "displayName": "Feature list section", "icon": "list" },
+  "options": {},
+  "attributes": {
+    "tone": {
+      "type": "enumeration",
+      "enum": ["default", "alt", "yellow"],
+      "default": "default"
+    },
+    "eyebrow": { "type": "string", "required": true },
+    "headingHtml": { "type": "text", "required": true },
+    "lede": { "type": "text" },
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "cards.feature-item",
+      "min": 1
+    }
+  }
+}

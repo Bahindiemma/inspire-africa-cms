@@ -1,0 +1,38 @@
+{
+  "kind": "singleType",
+  "collectionName": "design_tokens",
+  "info": {
+    "singularName": "design-token",
+    "pluralName": "design-tokens",
+    "displayName": "Design Tokens",
+    "description": "CSS variable values that drive the entire site's brand surface."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "brandYellow": {
+      "type": "string",
+      "required": true,
+      "default": "#F8BD26",
+      "regex": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+      "description": "The single brand yellow. Used everywhere yellow appears."
+    },
+    "text": { "type": "component", "repeatable": false, "component": "tokens.color-pair" },
+    "background": { "type": "component", "repeatable": false, "component": "tokens.color-pair" },
+    "surface": { "type": "component", "repeatable": false, "component": "tokens.color-pair" },
+    "surfaceAlt": { "type": "component", "repeatable": false, "component": "tokens.color-pair" },
+    "accentInk": { "type": "component", "repeatable": false, "component": "tokens.color-pair" },
+    "accentDisplay": { "type": "component", "repeatable": false, "component": "tokens.color-pair" },
+    "line": { "type": "component", "repeatable": false, "component": "tokens.color-pair" },
+    "lineStrong": { "type": "component", "repeatable": false, "component": "tokens.color-pair" },
+    "fontDisplay": { "type": "string", "default": "Madimi One", "required": true },
+    "fontBody": { "type": "string", "default": "Madimi One", "required": true },
+    "breakpoints": {
+      "type": "json",
+      "default": { "xs": 540, "sm": 640, "md": 880, "lg": 980, "xl": 1100, "xxl": 1320 }
+    },
+    "shadowCard": { "type": "string", "default": "0 1px 2px rgba(10,10,10,0.04), 0 8px 24px rgba(10,10,10,0.06)" },
+    "shadowHover": { "type": "string", "default": "0 4px 8px rgba(10,10,10,0.06), 0 18px 40px rgba(10,10,10,0.1)" }
+  }
+}

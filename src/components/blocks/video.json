@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_blocks_videos",
+  "info": { "displayName": "Video", "icon": "video" },
+  "options": {},
+  "attributes": {
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "YouTube, Vimeo, or direct mp4 URL. Frontend picks the embed strategy."
+    },
+    "title": { "type": "string", "required": true },
+    "poster": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "autoplay": { "type": "boolean", "default": false }
+  }
+}

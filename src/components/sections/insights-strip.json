@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_sections_insights_strips",
+  "info": { "displayName": "Insights strip", "icon": "newspaper" },
+  "options": {},
+  "attributes": {
+    "eyebrow": { "type": "string", "required": true },
+    "headingHtml": { "type": "text", "required": true },
+    "lede": { "type": "text" },
+    "limit": { "type": "integer", "default": 3, "min": 1, "max": 6 },
+    "filterTag": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::tag.tag",
+      "description": "Optional — only show posts that have this tag."
+    },
+    "ctaLabel": { "type": "string", "default": "Read more" },
+    "ctaHref": { "type": "string", "default": "/blog" }
+  }
+}

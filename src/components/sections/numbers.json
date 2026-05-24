@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_sections_numbers",
+  "info": { "displayName": "Numbers section", "icon": "chart-bar" },
+  "options": {},
+  "attributes": {
+    "eyebrow": { "type": "string" },
+    "headingHtml": { "type": "text" },
+    "stats": {
+      "type": "component",
+      "repeatable": true,
+      "component": "cards.stat",
+      "min": 1,
+      "max": 8
+    }
+  }
+}

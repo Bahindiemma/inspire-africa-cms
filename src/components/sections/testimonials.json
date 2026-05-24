@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_sections_testimonials",
+  "info": { "displayName": "Testimonials section", "icon": "comment" },
+  "options": {},
+  "attributes": {
+    "eyebrow": { "type": "string" },
+    "headingHtml": { "type": "text" },
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "cards.testimonial",
+      "min": 1,
+      "max": 6
+    }
+  }
+}

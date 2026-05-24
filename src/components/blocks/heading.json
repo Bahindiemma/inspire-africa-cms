@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_blocks_headings",
+  "info": { "displayName": "Heading", "icon": "heading" },
+  "options": {},
+  "attributes": {
+    "text": { "type": "string", "required": true },
+    "level": {
+      "type": "enumeration",
+      "enum": ["h2", "h3", "h4"],
+      "default": "h2",
+      "required": true
+    },
+    "anchorId": { "type": "string", "description": "Optional id for in-page anchoring." }
+  }
+}

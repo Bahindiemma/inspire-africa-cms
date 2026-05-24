@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_cards_step_cards",
+  "info": { "displayName": "Step card", "icon": "th-large" },
+  "options": {},
+  "attributes": {
+    "marker": { "type": "string", "default": "01" },
+    "title": { "type": "string", "required": true },
+    "body": { "type": "text", "required": true }
+  }
+}

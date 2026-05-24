@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_blocks_callouts",
+  "info": { "displayName": "Callout", "icon": "info-circle" },
+  "options": {},
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "text": { "type": "text", "required": true }
+  }
+}

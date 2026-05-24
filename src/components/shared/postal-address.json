@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_shared_postal_addresses",
+  "info": {
+    "displayName": "Postal address",
+    "icon": "map-marker"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "default": "Registered Office"
+    },
+    "street": { "type": "string", "required": true },
+    "city": { "type": "string", "required": true },
+    "region": { "type": "string" },
+    "postalCode": { "type": "string", "required": true },
+    "country": { "type": "string", "required": true },
+    "phone": { "type": "string" },
+    "email": { "type": "email" }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_blocks_tables",
+  "info": { "displayName": "Table", "icon": "table" },
+  "options": {},
+  "attributes": {
+    "caption": { "type": "string" },
+    "headers": { "type": "json", "required": true, "description": "Array of header cell strings." },
+    "rows": { "type": "json", "required": true, "description": "2D array of cell strings." }
+  }
+}

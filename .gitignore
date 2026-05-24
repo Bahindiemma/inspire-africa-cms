@@ -1,0 +1,50 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Dependencies
+node_modules/
+
+# Env (NEVER commit real secrets)
+.env
+.env.*
+!.env.example
+
+# Strapi runtime
+.cache/
+build/
+dist/
+.tmp/
+.strapi/
+.runtime/
+.strapi-updater.json
+
+# Uploaded media (local dev only — production uses S3/Cloudinary)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Local SQLite (dev convenience only)
+*.db
+*.sqlite
+
+# Coverage / tests
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Backups
+exports/
+*.tar.gz

@@ -1,0 +1,79 @@
+{
+  "kind": "collectionType",
+  "collectionName": "blog_posts",
+  "info": {
+    "singularName": "blog-post",
+    "pluralName": "blog-posts",
+    "displayName": "Blog Post",
+    "description": "Editorial article — surfaced on the home Insights section and on /blog/[slug]."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": { "localized": true }
+  },
+  "attributes": {
+    "title": { "type": "string", "required": true, "maxLength": 200, "pluginOptions": { "i18n": { "localized": true } } },
+    "slug": { "type": "uid", "targetField": "title", "required": true, "pluginOptions": { "i18n": { "localized": false } } },
+    "excerpt": { "type": "text", "required": true, "maxLength": 320, "pluginOptions": { "i18n": { "localized": true } } },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "Ethical Recruitment",
+        "Policy & Markets",
+        "Development Economics",
+        "Worker Stories",
+        "Employer Stories",
+        "Government Partnerships",
+        "Platform Updates"
+      ],
+      "required": true
+    },
+    "heroImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "required": true
+    },
+    "heroAlt": { "type": "string", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "readMinutes": {
+      "type": "integer",
+      "min": 1,
+      "max": 60,
+      "description": "Auto-computed by the lifecycle on save from body word count."
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::author.author",
+      "inversedBy": "blog_posts"
+    },
+    "tags": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::tag.tag",
+      "inversedBy": "blog_posts"
+    },
+    "body": {
+      "type": "dynamiczone",
+      "components": [
+        "blocks.lede",
+        "blocks.heading",
+        "blocks.paragraph",
+        "blocks.list",
+        "blocks.callout",
+        "blocks.quote",
+        "blocks.image",
+        "blocks.video"
+      ],
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.seo",
+      "pluginOptions": { "i18n": { "localized": true } }
+    }
+  }
+}

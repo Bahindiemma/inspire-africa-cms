@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_cards_feature_items",
+  "info": { "displayName": "Feature item", "icon": "check" },
+  "options": {},
+  "attributes": {
+    "marker": { "type": "string", "default": "01" },
+    "title": { "type": "string", "required": true },
+    "body": { "type": "text", "required": true },
+    "isBad": {
+      "type": "boolean",
+      "default": false,
+      "description": "Renders the bullet in the 'bad' (red) state used for problem lists."
+    }
+  }
+}

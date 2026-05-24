@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pages",
+  "info": {
+    "singularName": "page",
+    "pluralName": "pages",
+    "displayName": "Page",
+    "description": "A marketing page built from a Dynamic Zone of sections."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": { "localized": true }
+  },
+  "attributes": {
+    "title": { "type": "string", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.seo",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "sections": {
+      "type": "dynamiczone",
+      "components": [
+        "sections.hero",
+        "sections.audiences",
+        "sections.corridors-marquee",
+        "sections.numbers",
+        "sections.testimonials",
+        "sections.feature-list",
+        "sections.process-list",
+        "sections.step-cards",
+        "sections.insights-strip",
+        "sections.form-block",
+        "sections.final-cta"
+      ],
+      "pluginOptions": { "i18n": { "localized": true } }
+    }
+  }
+}

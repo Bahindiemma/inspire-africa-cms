@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_sections_form_blocks",
+  "info": { "displayName": "Form block", "icon": "envelope" },
+  "options": {},
+  "attributes": {
+    "formKey": {
+      "type": "enumeration",
+      "enum": ["contact", "employers", "governments"],
+      "required": true
+    },
+    "eyebrow": { "type": "string" },
+    "headingHtml": { "type": "text", "required": true },
+    "lede": { "type": "text" },
+    "anchorId": { "type": "string", "description": "Optional DOM id used by CTAs that scroll to the form." }
+  }
+}

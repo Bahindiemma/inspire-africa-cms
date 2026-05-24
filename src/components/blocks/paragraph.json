@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_blocks_paragraphs",
+  "info": { "displayName": "Paragraph", "icon": "paragraph" },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "blocks",
+      "required": true,
+      "description": "Strapi native Blocks editor — rich-text with inline formatting."
+    }
+  }
+}

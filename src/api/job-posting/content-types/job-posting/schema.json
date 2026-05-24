@@ -1,0 +1,77 @@
+{
+  "kind": "collectionType",
+  "collectionName": "job_postings",
+  "info": {
+    "singularName": "job-posting",
+    "pluralName": "job-postings",
+    "displayName": "Job Posting",
+    "description": "Live international vacancies surfaced to workers and via the public API."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": { "type": "string", "required": true, "maxLength": 200 },
+    "slug": { "type": "uid", "targetField": "title", "required": true },
+    "description": {
+      "type": "blocks",
+      "required": true,
+      "description": "Strapi native Blocks (rich-text) editor."
+    },
+    "destinationCountry": {
+      "type": "enumeration",
+      "enum": ["UK", "EU", "USA", "Canada", "Australia", "Mauritius", "Saudi Arabia"],
+      "required": true
+    },
+    "destinationCity": { "type": "string" },
+    "sector": {
+      "type": "enumeration",
+      "enum": [
+        "Healthcare",
+        "Care",
+        "Hospitality",
+        "Construction",
+        "Manufacturing",
+        "Agriculture",
+        "Tech",
+        "Mining",
+        "Logistics",
+        "Other"
+      ],
+      "required": true
+    },
+    "salaryMin": { "type": "decimal" },
+    "salaryMax": { "type": "decimal" },
+    "salaryCurrency": {
+      "type": "enumeration",
+      "enum": ["GBP", "EUR", "USD", "CAD", "AUD", "AED", "SAR", "MUR"],
+      "default": "GBP"
+    },
+    "salaryPeriod": {
+      "type": "enumeration",
+      "enum": ["hour", "month", "year"],
+      "default": "year"
+    },
+    "requirements": { "type": "blocks", "required": true },
+    "benefits": { "type": "blocks" },
+    "closingDate": { "type": "date", "required": true },
+    "status": {
+      "type": "enumeration",
+      "enum": ["Draft", "Published", "Closed", "Filled"],
+      "default": "Draft",
+      "required": true
+    },
+    "applicationLink": { "type": "string" },
+    "vacancies": { "type": "integer", "min": 1, "default": 1 },
+    "tags": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::tag.tag"
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.seo"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "collectionName": "components_sections_heroes",
+  "info": { "displayName": "Hero", "icon": "star" },
+  "options": {},
+  "attributes": {
+    "watermark": { "type": "string", "description": "Big background letters, e.g. 'INSPIRE'." },
+    "eyebrow": { "type": "string", "required": true },
+    "headingHtml": {
+      "type": "text",
+      "required": true,
+      "description": "Headline with allowed inline spans: <span class='small-italic'>, <span class='accent'>. Frontend renders as innerHTML — sanitize before save."
+    },
+    "lede": { "type": "text", "required": true },
+    "ctas": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.cta",
+      "max": 3
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "photoUrl": {
+      "type": "string",
+      "description": "Optional override URL — used by the bootstrap seed to point at pre-existing /public/images/* assets without uploading them via the Media Library. Editors should use the `photo` media field; frontend reads `photoUrl ?? photo.url`."
+    },
+    "photoAlt": { "type": "string" },
+    "photoCaptionTitle": { "type": "string" },
+    "photoCaptionSub": { "type": "string" },
+    "centered": {
+      "type": "boolean",
+      "default": false,
+      "description": "Centered hero (no photo) used on contact + legal pages."
+    },
+    "priority": {
+      "type": "boolean",
+      "default": true,
+      "description": "Passed to next/image priority loading on the page hero."
+    }
+  }
+}

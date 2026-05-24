@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_sections_step_cards",
+  "info": { "displayName": "Step cards section", "icon": "th" },
+  "options": {},
+  "attributes": {
+    "eyebrow": { "type": "string" },
+    "headingHtml": { "type": "text" },
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "cards.step-card",
+      "min": 1,
+      "max": 6
+    }
+  }
+}

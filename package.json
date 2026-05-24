@@ -1,0 +1,47 @@
+{
+  "name": "inspire-africa-cms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Strapi v5 headless CMS backing the INSPIRE AFRICA Next.js website",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "seed:roles": "strapi exec ts-node src/bootstrap/seed-roles.ts",
+    "test:smoke": "bash scripts/smoke-test.sh"
+  },
+  "dependencies": {
+    "@strapi/plugin-users-permissions": "5.46.1",
+    "@strapi/provider-email-sendgrid": "5.46.1",
+    "@strapi/provider-upload-aws-s3": "5.46.1",
+    "@strapi/provider-upload-cloudinary": "5.46.1",
+    "@strapi/strapi": "5.46.1",
+    "axios": "^1.7.9",
+    "better-sqlite3": "11.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.1.0",
+    "mysql2": "^3.11.5",
+    "openid-client": "^5.7.1",
+    "pg": "8.13.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.0",
+    "styled-components": "^6.1.13"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^20.17.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=22.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "inspire-africa-cms-strapi-v5"
+  }
+}

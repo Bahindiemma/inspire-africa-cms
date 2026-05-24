@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_blocks_images",
+  "info": { "displayName": "Image", "icon": "image" },
+  "options": {},
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "required": true
+    },
+    "alt": { "type": "string", "required": true },
+    "caption": { "type": "string" },
+    "fullBleed": { "type": "boolean", "default": false }
+  }
+}

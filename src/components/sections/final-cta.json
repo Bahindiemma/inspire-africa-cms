@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_sections_final_ctas",
+  "info": { "displayName": "Final CTA", "icon": "flag-checkered" },
+  "options": {},
+  "attributes": {
+    "eyebrow": { "type": "string", "required": true },
+    "headingHtml": { "type": "text", "required": true },
+    "lede": { "type": "text" },
+    "primaryCta": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.cta",
+      "required": true
+    },
+    "secondaryLinks": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.nav-link"
+    }
+  }
+}

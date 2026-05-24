@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_sections_corridors_marquees",
+  "info": { "displayName": "Corridors marquee", "icon": "globe" },
+  "options": {},
+  "attributes": {
+    "label": { "type": "string", "default": "Operating across" },
+    "corridors": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::corridor.corridor"
+    }
+  }
+}

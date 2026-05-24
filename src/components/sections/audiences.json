@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_sections_audiences",
+  "info": { "displayName": "Audiences section", "icon": "users" },
+  "options": {},
+  "attributes": {
+    "eyebrow": { "type": "string", "required": true },
+    "headingHtml": { "type": "text", "required": true },
+    "lede": { "type": "text" },
+    "cards": {
+      "type": "component",
+      "repeatable": true,
+      "component": "cards.audience-card",
+      "min": 1,
+      "max": 6
+    }
+  }
+}

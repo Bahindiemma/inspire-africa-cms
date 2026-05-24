@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_blocks_quotes",
+  "info": { "displayName": "Pull quote", "icon": "quote-left" },
+  "options": {},
+  "attributes": {
+    "text": { "type": "text", "required": true },
+    "attribution": { "type": "string" }
+  }
+}

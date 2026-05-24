@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "form_submissions",
+  "info": {
+    "singularName": "form-submission",
+    "pluralName": "form-submissions",
+    "displayName": "Form Submission",
+    "description": "PII from ContactForm / EmployersForm / GovernmentsForm. Public can POST; only admins can GET/PUT/DELETE."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "formKey": {
+      "type": "enumeration",
+      "enum": ["contact", "employers", "governments"],
+      "required": true
+    },
+    "payload": {
+      "type": "json",
+      "required": true,
+      "private": true,
+      "description": "Raw form fields; shape varies by formKey."
+    },
+    "audience": { "type": "string" },
+    "firstName": { "type": "string", "private": true },
+    "lastName": { "type": "string", "private": true },
+    "email": { "type": "email", "required": true, "private": true },
+    "phone": { "type": "string", "private": true },
+    "organisation": { "type": "string" },
+    "country": { "type": "string" },
+    "message": { "type": "text", "private": true },
+    "ipAddress": { "type": "string", "private": true },
+    "userAgent": { "type": "string", "private": true },
+    "recaptchaScore": { "type": "decimal", "private": true },
+    "status": {
+      "type": "enumeration",
+      "enum": ["New", "Acknowledged", "InProgress", "Closed", "Spam"],
+      "default": "New",
+      "required": true
+    },
+    "processedAt": { "type": "datetime", "private": true }
+  }
+}

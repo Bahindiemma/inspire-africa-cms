@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_shared_ctas",
+  "info": {
+    "displayName": "CTA",
+    "icon": "rocket"
+  },
+  "options": {},
+  "attributes": {
+    "label": { "type": "string", "required": true },
+    "href": { "type": "string", "required": true },
+    "variant": {
+      "type": "enumeration",
+      "enum": ["primary", "ghost", "dark"],
+      "default": "primary",
+      "required": true
+    },
+    "withArrow": { "type": "boolean", "default": true },
+    "isExternal": { "type": "boolean", "default": false },
+    "utmSource": { "type": "string" },
+    "utmMedium": { "type": "string" },
+    "utmCampaign": { "type": "string" }
+  }
+}

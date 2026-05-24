@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_sections_process_lists",
+  "info": { "displayName": "Process list section", "icon": "list-ol" },
+  "options": {},
+  "attributes": {
+    "tone": {
+      "type": "enumeration",
+      "enum": ["default", "alt", "yellow"],
+      "default": "default"
+    },
+    "eyebrow": { "type": "string", "required": true },
+    "headingHtml": { "type": "text", "required": true },
+    "lede": { "type": "text" },
+    "steps": {
+      "type": "component",
+      "repeatable": true,
+      "component": "cards.process-step",
+      "min": 1
+    }
+  }
+}

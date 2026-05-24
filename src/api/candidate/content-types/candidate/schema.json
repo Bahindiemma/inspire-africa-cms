@@ -1,0 +1,76 @@
+{
+  "kind": "collectionType",
+  "collectionName": "candidates",
+  "info": {
+    "singularName": "candidate",
+    "pluralName": "candidates",
+    "displayName": "Candidate",
+    "description": "PII — never exposed on the public API. Read access restricted to inspire-admin role."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "fullName": { "type": "string", "required": true },
+    "email": {
+      "type": "email",
+      "required": true,
+      "unique": true,
+      "private": true
+    },
+    "phone": { "type": "string", "private": true },
+    "countryOfOrigin": { "type": "string" },
+    "currentLocation": { "type": "string" },
+    "resume": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"],
+      "private": true
+    },
+    "portfolio": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["files", "images"],
+      "private": true
+    },
+    "skillTags": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::tag.tag"
+    },
+    "sectors": {
+      "type": "json",
+      "description": "Array of sector keys the candidate is qualified for."
+    },
+    "yearsExperience": { "type": "integer", "min": 0, "max": 60 },
+    "languageProficiency": {
+      "type": "json",
+      "description": "Array of { language, level: 'A1'|'A2'|'B1'|'B2'|'C1'|'C2' }."
+    },
+    "applicationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "New",
+        "Screening",
+        "Assessment",
+        "Matched",
+        "Deployed",
+        "Returned",
+        "Withdrawn",
+        "Rejected"
+      ],
+      "default": "New",
+      "required": true
+    },
+    "assignedAgent": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "private": true
+    },
+    "notes": { "type": "blocks", "private": true },
+    "consentMarketing": { "type": "boolean", "default": false },
+    "consentDataSharing": { "type": "boolean", "default": false, "required": true },
+    "consentTimestamp": { "type": "datetime" }
+  }
+}

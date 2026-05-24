@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_tokens_color_pairs",
+  "info": {
+    "displayName": "Color pair (light/dark)",
+    "icon": "paint-brush"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "description": "Token machine name, e.g. 'text', 'bg', 'surface'."
+    },
+    "light": {
+      "type": "string",
+      "required": true,
+      "regex": "^(#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})|rgba?\\(.+\\)|hsla?\\(.+\\))$",
+      "description": "CSS color for light theme."
+    },
+    "dark": {
+      "type": "string",
+      "required": true,
+      "regex": "^(#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})|rgba?\\(.+\\)|hsla?\\(.+\\))$",
+      "description": "CSS color for dark theme."
+    }
+  }
+}

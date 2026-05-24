@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_blocks_toc_anchors",
+  "info": {
+    "displayName": "TOC anchor",
+    "icon": "bookmark"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "anchorId": {
+      "type": "string",
+      "required": true,
+      "description": "DOM id used by the legal page's sticky TOC."
+    }
+  }
+}

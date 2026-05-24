@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "form_definitions",
+  "info": {
+    "singularName": "form-definition",
+    "pluralName": "form-definitions",
+    "displayName": "Form Definition",
+    "description": "Editable form copy and field schema (replaces hard-coded labels in ContactForm.tsx etc.)."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "i18n": { "localized": true }
+  },
+  "attributes": {
+    "formKey": {
+      "type": "enumeration",
+      "enum": ["contact", "employers", "governments"],
+      "required": true,
+      "unique": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "title": { "type": "string", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "lede": { "type": "text", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "fields": {
+      "type": "json",
+      "required": true,
+      "description": "Array of { name, label, type, required, options[]?, placeholder?, helpText? }.",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "submitLabel": { "type": "string", "default": "Send message", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "successMessage": { "type": "text", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "notifyEmail": { "type": "email", "required": true }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_cards_testimonials",
+  "info": { "displayName": "Testimonial", "icon": "quote-right" },
+  "options": {},
+  "attributes": {
+    "quote": { "type": "text", "required": true },
+    "name": { "type": "string", "required": true },
+    "role": { "type": "string", "required": true },
+    "flag": {
+      "type": "enumeration",
+      "enum": ["Worker voice", "Employer voice", "Government voice", "Partner voice"],
+      "required": true
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "required": true
+    },
+    "photoAlt": { "type": "string" }
+  }
+}

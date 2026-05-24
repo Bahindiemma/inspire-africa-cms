@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "legal_documents",
+  "info": {
+    "singularName": "legal-document",
+    "pluralName": "legal-documents",
+    "displayName": "Legal Document",
+    "description": "Privacy, Cookies, Terms, Modern Slavery — sticky-TOC long-form pages."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": { "localized": true }
+  },
+  "attributes": {
+    "slug": {
+      "type": "enumeration",
+      "enum": ["privacy", "cookies", "terms", "modern-slavery"],
+      "required": true,
+      "unique": true,
+      "pluginOptions": { "i18n": { "localized": false } }
+    },
+    "title": { "type": "string", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "eyebrow": { "type": "string", "default": "Legal", "pluginOptions": { "i18n": { "localized": true } } },
+    "headingHtml": { "type": "text", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "lede": { "type": "text", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "version": { "type": "string", "required": true, "default": "1.0" },
+    "lastUpdated": { "type": "date", "required": true },
+    "controllerName": { "type": "string" },
+    "tocAnchors": {
+      "type": "component",
+      "repeatable": true,
+      "component": "blocks.toc-anchor",
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "body": {
+      "type": "dynamiczone",
+      "components": [
+        "blocks.heading",
+        "blocks.paragraph",
+        "blocks.list",
+        "blocks.callout",
+        "blocks.table",
+        "blocks.quote"
+      ],
+      "pluginOptions": { "i18n": { "localized": true } }
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.seo",
+      "pluginOptions": { "i18n": { "localized": true } }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "corridors",
+  "info": {
+    "singularName": "corridor",
+    "pluralName": "corridors",
+    "displayName": "Corridor",
+    "description": "A destination corridor (UK, EU, USA, …) shown in the home marquee."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": { "localized": true }
+  },
+  "attributes": {
+    "country": { "type": "string", "required": true, "unique": true, "pluginOptions": { "i18n": { "localized": false } } },
+    "displayName": { "type": "string", "required": true, "pluginOptions": { "i18n": { "localized": true } } },
+    "sectors": { "type": "string", "required": true, "description": "Comma- or dot-separated, e.g. 'Healthcare · Care'.", "pluginOptions": { "i18n": { "localized": true } } },
+    "flagIcon": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "order": { "type": "integer", "default": 0 }
+  }
+}

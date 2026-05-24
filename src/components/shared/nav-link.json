@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_shared_nav_links",
+  "info": {
+    "displayName": "Nav link",
+    "icon": "link"
+  },
+  "options": {},
+  "attributes": {
+    "label": { "type": "string", "required": true },
+    "href": { "type": "string", "required": true },
+    "isExternal": { "type": "boolean", "default": false },
+    "isCta": { "type": "boolean", "default": false },
+    "order": { "type": "integer", "default": 0 },
+    "ariaLabel": { "type": "string" }
+  }
+}

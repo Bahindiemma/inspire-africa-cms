@@ -1,0 +1,8 @@
+{
+  "collectionName": "components_blocks_ledes",
+  "info": { "displayName": "Lede", "icon": "align-left" },
+  "options": {},
+  "attributes": {
+    "text": { "type": "text", "required": true }
+  }
+}

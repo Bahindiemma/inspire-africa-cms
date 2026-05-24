@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_cards_audience_cards",
+  "info": {
+    "displayName": "Audience card",
+    "icon": "users"
+  },
+  "options": {},
+  "attributes": {
+    "number": { "type": "string", "default": "01" },
+    "title": { "type": "string", "required": true },
+    "body": { "type": "text", "required": true },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "photoAlt": { "type": "string" },
+    "tag": { "type": "string", "description": "Top-left badge text, e.g. 'For Workers'." },
+    "ctaLabel": { "type": "string", "required": true },
+    "ctaHref": { "type": "string", "required": true },
+    "isPrimary": {
+      "type": "boolean",
+      "default": false,
+      "description": "Renders this card with the filled-yellow primary treatment."
+    }
+  }
+}
