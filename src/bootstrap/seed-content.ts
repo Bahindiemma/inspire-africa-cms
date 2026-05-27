@@ -541,7 +541,7 @@ const EMPLOYERS_PAGE = {
         { marker: '✓', title: 'Predictive screening', body: 'Capability, behaviour and readiness assessed before any CV reaches you.' },
         { marker: '✓', title: 'Centralised preparation', body: 'Candidates arrive prepared for the workplace — language, documentation, expectations all handled.' },
         { marker: '✓', title: 'Migration finance', body: 'Salary-linked finance expands the pool of available talent without falling on you.' },
-        { marker: '✓', title: 'Compliance-first', body: 'Audit-ready documentation. Aligned with the IOM's IRIS and other international ethical recruitment standards.' },
+        { marker: '✓', title: 'Compliance-first', body: 'Audit-ready documentation. Aligned with the IOM’s IRIS and other international ethical recruitment standards.' },
       ],
     },
     {
@@ -680,7 +680,7 @@ const APPROACH_PAGE = {
       headingHtml: 'Four ideas. <span class="italic-accent">One system.</span>',
       lede: 'Most international recruitment is fragmented, opaque and extractive. INSPIRE AFRICA is built on four operating principles that shape every decision in the platform.',
       items: [
-        { title: 'Ethical', body: 'Worker protection built in. Workers do not pay recruitment fees — employers do. Aligned with the IOM's IRIS and other international ethical recruitment standards.' },
+        { title: 'Ethical', body: 'Worker protection built in. Workers do not pay recruitment fees — employers do. Aligned with the IOM’s IRIS and other international ethical recruitment standards.' },
         { title: 'Circular', body: 'Earn-Learn-Return. Labour mobility designed so skills, capital and opportunity flow back into African economies over time.' },
         { title: 'Structured', body: 'Every journey follows a predictable, repeatable pipeline. Readiness, finance, deployment and aftercare coordinated as one system.' },
         { title: 'Worker-Centred', body: "Built around the worker's journey, not the recruiter's deal flow. Outcomes are measured in worker progression — not placement count." },
