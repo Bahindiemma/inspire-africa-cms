@@ -99,7 +99,7 @@ const ROLE_SPECS: AdminRoleSpec[] = [
     name: 'Content Manager',
     code: 'inspire-content-manager',
     description:
-      'Manage every editorial collection (pages, blog, jobs, corridors, tags, authors, form-definitions) AND manage END-USERS (API consumers): create users and assign them users-permissions roles. Cannot edit Site Settings / Design Tokens / Navigation, and cannot manage ADMIN-PANEL users (Settings → Administration Panel → Users stays Super-Admin-only).',
+      'Manage all editorial collections (pages, blog, jobs, corridors, tags, authors, form-definitions) plus end-users (create users and assign their roles). Cannot edit Site Settings / Design Tokens / Navigation or manage admin-panel users.',
     contentTypes: ALL_EDITORIAL_TYPES,
     actions: [
       'plugin::content-manager.explorer.read',
@@ -176,12 +176,17 @@ export async function seedAdminRoles(strapi: Core.Strapi) {
   for (const spec of ROLE_SPECS) {
     let role = await roleRepo.findOne({ where: { code: spec.code } });
 
+    // `admin_roles.description` is VARCHAR(255) on a fresh DB — clamp so a
+    // long spec description can never crash the bootstrap with "Data too
+    // long for column 'description'".
+    const description = spec.description.slice(0, 250);
+
     if (!role) {
       role = await roleRepo.create({
         data: {
           name: spec.name,
           code: spec.code,
-          description: spec.description,
+          description,
         },
       });
       strapi.log.info(`[seed-admin-roles] created role: ${spec.code}`);
@@ -189,7 +194,7 @@ export async function seedAdminRoles(strapi: Core.Strapi) {
       // Keep description in sync with the spec (cheap, idempotent).
       await roleRepo.update({
         where: { id: role.id },
-        data: { name: spec.name, description: spec.description },
+        data: { name: spec.name, description },
       });
     }
 
