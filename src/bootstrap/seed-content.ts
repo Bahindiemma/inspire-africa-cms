@@ -130,7 +130,6 @@ export async function seedContent(strapi: Core.Strapi) {
     { country: 'USA', displayName: 'USA', sectors: 'Tech · Hospitality', order: 3 },
     { country: 'Canada', displayName: 'Canada', sectors: 'Care · Construction', order: 4 },
     { country: 'Australia', displayName: 'Australia', sectors: 'Care · Mining', order: 5 },
-    { country: 'Mauritius', displayName: 'Mauritius', sectors: 'Hospitality', order: 6 },
     { country: 'Saudi Arabia', displayName: 'Saudi Arabia', sectors: 'Construction · Care', order: 7 },
   ];
   for (const c of corridors) {
@@ -377,7 +376,7 @@ export async function seedContent(strapi: Core.Strapi) {
       __component: 'sections.final-cta',
       eyebrow: 'Your move',
       headingHtml: '<span class="italic-accent">If you\'re ready —</span>Join the<br/>community.',
-      lede: 'Free membership. Direct route into the INSPIRE ecosystem.',
+      lede: 'Free membership. Direct route into the INSPIRE AFRICA ecosystem.',
       primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true },
       secondaryLinks: [
         { label: 'For Employers', href: '/employers', order: 1 },
@@ -537,12 +536,12 @@ const EMPLOYERS_PAGE = {
       tone: 'yellow',
       eyebrow: 'A better way to hire',
       headingHtml: 'Built for <span class="italic-accent">outcomes</span> — not transactions.',
-      lede: 'INSPIRE AFRICA replaces fragmented recruitment with a structured, Africa-based talent pipeline. The model is transparent, ethical and measurable end to end.',
+      lede: 'INSPIRE AFRICA replaces fragmented recruitment with a structured, Africa-based talent pipeline. The model is transparent, ethical and measurable from end to end.',
       items: [
         { marker: '✓', title: 'Predictive screening', body: 'Capability, behaviour and readiness assessed before any CV reaches you.' },
         { marker: '✓', title: 'Centralised preparation', body: 'Candidates arrive prepared for the workplace — language, documentation, expectations all handled.' },
         { marker: '✓', title: 'Migration finance', body: 'Salary-linked finance expands the pool of available talent without falling on you.' },
-        { marker: '✓', title: 'Compliance-first', body: 'Audit-ready documentation. Aligned with international ethical-recruitment standards.' },
+        { marker: '✓', title: 'Compliance-first', body: 'Audit-ready documentation. Aligned with the IOM's IRIS and other international ethical recruitment standards.' },
       ],
     },
     {
@@ -584,7 +583,7 @@ const GOVERNMENTS_PAGE = {
   title: 'For Governments',
   seo: {
     metaTitle: 'For Governments — INSPIRE AFRICA',
-    metaDescription: 'Build transparent, scalable labour mobility pathways. Data-driven workforce planning aligned with national development priorities.',
+    metaDescription: 'Build transparent, scalable and circular labour mobility pathways. Data-driven workforce planning aligned with national development priorities.',
   },
   sections: [
     {
@@ -592,7 +591,7 @@ const GOVERNMENTS_PAGE = {
       watermark: 'GOVERN',
       eyebrow: 'For governments & partners',
       headingHtml: '<span class="small-italic">Make migration work —</span>for your<br/><span class="accent">economy.</span>',
-      lede: 'INSPIRE AFRICA provides the tools and infrastructure to build transparent, scalable labour mobility pathways.',
+      lede: 'INSPIRE AFRICA provides the tools and infrastructure to build transparent, scalable and circular labour mobility pathways.',
       photoUrl: '/images/inspire-farmer-agriculture.jpg',
       photoAlt: "Architectural sketch of infrastructure — INSPIRE's systemic approach to migration",
       photoCaptionTitle: 'Systems-led',
@@ -664,7 +663,7 @@ const APPROACH_PAGE = {
       watermark: 'APPROACH',
       eyebrow: 'Our approach',
       headingHtml: '<span class="small-italic">Not recruitment.</span><span class="accent">Infrastructure.</span>',
-      lede: 'A structured system for global labour mobility — built around four principles: ethical, circular, structured, worker-centered.',
+      lede: 'A structured system for global labour mobility — built around four principles: ethical, circular, structured, worker-centred.',
       photoUrl: '/images/inspire-farmer-agriculture.jpg',
       photoAlt: "Architectural sketch of infrastructure — the visual metaphor for INSPIRE's mobility platform",
       photoCaptionTitle: 'Earn · Learn · Return',
@@ -681,10 +680,10 @@ const APPROACH_PAGE = {
       headingHtml: 'Four ideas. <span class="italic-accent">One system.</span>',
       lede: 'Most international recruitment is fragmented, opaque and extractive. INSPIRE AFRICA is built on four operating principles that shape every decision in the platform.',
       items: [
-        { title: 'Ethical', body: 'Worker protection built in. Workers do not pay recruitment fees — employers do. Aligned with international ethical-recruitment standards.' },
-        { title: 'Circular', body: 'Earn-Learn-Return. Workers build income, skills and experience that flow back to African economies through remittances and reintegration.' },
+        { title: 'Ethical', body: 'Worker protection built in. Workers do not pay recruitment fees — employers do. Aligned with the IOM's IRIS and other international ethical recruitment standards.' },
+        { title: 'Circular', body: 'Earn-Learn-Return. Labour mobility designed so skills, capital and opportunity flow back into African economies over time.' },
         { title: 'Structured', body: 'Every journey follows a predictable, repeatable pipeline. Readiness, finance, deployment and aftercare coordinated as one system.' },
-        { title: 'Worker-Centered', body: "Built around the worker's journey, not the recruiter's deal flow. Outcomes are measured in worker progression — not placement count." },
+        { title: 'Worker-Centred', body: "Built around the worker's journey, not the recruiter's deal flow. Outcomes are measured in worker progression — not placement count." },
       ],
     },
     {
@@ -699,14 +698,14 @@ const APPROACH_PAGE = {
         { title: 'Enable', body: 'Where required, access to structured migration cost solutions allows candidates to proceed without prohibitive up-front barriers.' },
         { title: 'Deploy', body: 'Documentation, compliance and relocation coordinated to ensure a smooth transition into employment.' },
         { title: 'Support', body: 'Ongoing support maintains stability, performance and integration in the workplace.' },
-        { title: 'Return & Progress', body: 'Workers build experience, savings and skills that are reinvested into long-term careers and home economies.' },
+        { title: 'Return & Progress', body: 'Workers build experience, savings and skills that are reinvested into long-term careers, entrepreneurship and home economies.' },
       ],
     },
     {
       __component: 'sections.final-cta',
       eyebrow: 'Your move',
       headingHtml: '<span class="italic-accent">Ready to begin?</span>Join the<br/>community.',
-      lede: 'Free membership. Direct route into the INSPIRE ecosystem.',
+      lede: 'Free membership. Direct route into the INSPIRE AFRICA ecosystem.',
       primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true, utmSource: 'approach_cta' },
     },
   ],
@@ -716,7 +715,7 @@ const JOIN_PAGE = {
   title: 'Join the Community',
   seo: {
     metaTitle: 'Join the Community — INSPIRE AFRICA',
-    metaDescription: 'Free membership. A vibrant network of African professionals, recruiters and employers — your direct route into the INSPIRE ecosystem.',
+    metaDescription: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
   },
   sections: [
     {
@@ -724,7 +723,7 @@ const JOIN_PAGE = {
       watermark: 'JOIN',
       eyebrow: 'The community',
       headingHtml: '<span class="small-italic">A network of</span>African<br/><span class="accent">professionals,<br/>going global.</span>',
-      lede: 'Free membership. Direct route into the INSPIRE ecosystem. Meet recruiters, employers and fellow workers already on the path.',
+      lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
       photoUrl: '/images/inspire-healthcare-portrait.jpg',
       photoAlt: 'Two African professionals collaborating in a working session',
       photoCaptionTitle: 'Free Forever',
@@ -743,7 +742,7 @@ const JOIN_PAGE = {
       items: [
         { marker: '✓', title: 'A vibrant international network', body: 'Connect with African professionals, recruiters and employers already on the path abroad.' },
         { marker: '✓', title: 'Live opportunities', body: 'Real jobs from verified employers — not aggregated scraping from the wider web.' },
-        { marker: '✓', title: 'Country-specific guidance', body: 'Practical know-how on UK, EU, USA, Canada, Australia, Mauritius and Saudi Arabia — from people who actually went.' },
+        { marker: '✓', title: 'Country-specific guidance', body: 'Practical know-how on UK, EU, USA, Canada, Australia and Saudi Arabia — from people who actually went.' },
         { marker: '✓', title: 'Peer support', body: 'Ask questions, share experience, build relationships that outlast a single placement.' },
         { marker: '✓', title: 'Events and learning', body: 'Webinars, AMAs, language sessions, interview prep — scheduled across time zones.' },
         { marker: '✓', title: 'Free, lifetime access', body: 'No paywalls. No hidden fees. Membership is genuinely free.' },
