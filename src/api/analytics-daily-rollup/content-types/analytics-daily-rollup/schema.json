@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "analytics_daily_rollups",
+  "info": {
+    "singularName": "analytics-daily-rollup",
+    "pluralName": "analytics-daily-rollups",
+    "displayName": "Analytics Daily Rollup",
+    "description": "Pre-aggregated daily metrics built by the nightly cron, so the dashboard never scans raw events. One row per calendar day (UTC). Retained longer than raw events for long-term trend reporting."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-api": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "date": { "type": "date", "required": true, "unique": true },
+    "sessions": { "type": "integer", "default": 0, "min": 0 },
+    "pageviews": { "type": "integer", "default": 0, "min": 0 },
+    "events": { "type": "integer", "default": 0, "min": 0 },
+    "byPath": { "type": "json" },
+    "byCountry": { "type": "json" },
+    "byDevice": { "type": "json" },
+    "bySection": { "type": "json" },
+    "byReferrer": { "type": "json" },
+    "scrollDepthBuckets": { "type": "json" },
+    "consentAnalytics": { "type": "integer", "default": 0, "min": 0 },
+    "consentAll": { "type": "integer", "default": 0, "min": 0 }
+  }
+}

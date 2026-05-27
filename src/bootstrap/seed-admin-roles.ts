@@ -77,11 +77,21 @@ const BLOG_ONLY = [
   'api::author.author',
 ];
 
+// Visitor-analytics collections. Read-only for editorial roles (so they
+// can open the Analytics dashboard); writes only ever happen through the
+// token-gated ingest endpoint, never the admin UI.
+const ANALYTICS_TYPES = [
+  'api::analytics-session.analytics-session',
+  'api::analytics-event.analytics-event',
+  'api::analytics-daily-rollup.analytics-daily-rollup',
+];
+
 const ALL_READABLE = [
   ...ALL_EDITORIAL_TYPES,
   'api::site-setting.site-setting',
   'api::design-token.design-token',
   'api::navigation.navigation',
+  ...ANALYTICS_TYPES,
 ];
 
 const ROLE_SPECS: AdminRoleSpec[] = [
@@ -127,6 +137,13 @@ const ROLE_SPECS: AdminRoleSpec[] = [
         subject: null,
         properties: {},
       },
+      // Read-only access to the visitor-analytics collections so this role
+      // can open the Analytics dashboard.
+      ...ANALYTICS_TYPES.map((subject) => ({
+        action: 'plugin::content-manager.explorer.read',
+        subject,
+        properties: { fields: null, locales: null },
+      })),
     ],
   },
   {

@@ -13,10 +13,21 @@
  * Drop-in asset paths are resolved at build time by Strapi's admin
  * webpack — `src/admin/extensions/*.png` are valid imports.
  */
+import * as React from 'react';
 import type { StrapiApp } from '@strapi/strapi/admin';
 import AuthLogo from './extensions/auth-logo.png';
 import MenuLogo from './extensions/menu-logo.png';
 import Favicon from './extensions/favicon.png';
+
+/** Simple bar-chart glyph for the Analytics menu link. */
+const AnalyticsIcon = () =>
+  React.createElement(
+    'svg',
+    { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', 'aria-hidden': true },
+    React.createElement('rect', { x: 3, y: 12, width: 4, height: 9, rx: 1, fill: 'currentColor' }),
+    React.createElement('rect', { x: 10, y: 7, width: 4, height: 14, rx: 1, fill: 'currentColor' }),
+    React.createElement('rect', { x: 17, y: 3, width: 4, height: 18, rx: 1, fill: 'currentColor' })
+  );
 
 // Brand palette mapped to Strapi's design tokens. Only swap the colors
 // that change brand perception — leave Strapi's neutrals alone so the
@@ -142,6 +153,26 @@ export default {
     notifications: {
       releases: false,
     },
+  },
+
+  /**
+   * register() runs before the admin app mounts. Add the Visitor
+   * Analytics dashboard as a top-level left-menu link.
+   */
+  register(app: StrapiApp) {
+    app.addMenuLink({
+      to: '/analytics',
+      icon: AnalyticsIcon,
+      intlLabel: { id: 'analytics.menu.label', defaultMessage: 'Analytics' },
+      Component: async () => {
+        const page = await import('./pages/Analytics');
+        return page;
+      },
+      // No menu-level gate: the dashboard fetches via the content-manager
+      // API, which already enforces per-role read access to analytics types.
+      permissions: [],
+      position: 6,
+    });
   },
 
   /**

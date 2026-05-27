@@ -1,3 +1,5 @@
+import { runAnalyticsMaintenance } from '../src/crons/analytics-maintenance';
+
 export default ({ env }: { env: any }) => ({
   host: env('HOST', '0.0.0.0'),
   port: env.int('PORT', 1337),
@@ -9,5 +11,19 @@ export default ({ env }: { env: any }) => ({
   proxy: env.bool('IS_PROXIED', false),
   webhooks: {
     populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
+  },
+  // Scheduled jobs. Disable with CRON_ENABLED=false.
+  cron: {
+    enabled: env.bool('CRON_ENABLED', true),
+    tasks: {
+      // Daily at 02:15 UTC: build yesterday's analytics rollup, then
+      // purge raw events/sessions older than the retention window.
+      analyticsMaintenance: {
+        task: async ({ strapi }: { strapi: any }) => {
+          await runAnalyticsMaintenance(strapi);
+        },
+        options: { rule: '15 2 * * *', tz: 'UTC' },
+      },
+    },
   },
 });

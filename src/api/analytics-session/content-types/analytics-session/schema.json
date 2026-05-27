@@ -1,0 +1,62 @@
+{
+  "kind": "collectionType",
+  "collectionName": "analytics_sessions",
+  "info": {
+    "singularName": "analytics-session",
+    "pluralName": "analytics-sessions",
+    "displayName": "Analytics Session",
+    "description": "One row per consented visitor session. Privacy by design: the raw IP is never stored — only a salted hash (ipHash, private) and a coarse geo (country/region/city) derived server-side. Rows are created only after the visitor grants analytics consent and are purged after ANALYTICS_RETENTION_MONTHS."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-api": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "sessionId": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "maxLength": 64
+    },
+    "firstSeen": { "type": "datetime" },
+    "lastSeen": { "type": "datetime" },
+    "pageviewCount": { "type": "integer", "default": 0, "min": 0 },
+    "eventCount": { "type": "integer", "default": 0, "min": 0 },
+    "entryPath": { "type": "string", "maxLength": 512 },
+    "exitPath": { "type": "string", "maxLength": 512 },
+    "referrerHost": { "type": "string", "maxLength": 255 },
+    "utmSource": { "type": "string", "maxLength": 128 },
+    "utmMedium": { "type": "string", "maxLength": 128 },
+    "utmCampaign": { "type": "string", "maxLength": 128 },
+    "country": { "type": "string", "maxLength": 2 },
+    "region": { "type": "string", "maxLength": 128 },
+    "city": { "type": "string", "maxLength": 128 },
+    "deviceType": {
+      "type": "enumeration",
+      "enum": ["mobile", "tablet", "desktop", "bot", "unknown"],
+      "default": "unknown"
+    },
+    "browser": { "type": "string", "maxLength": 64 },
+    "os": { "type": "string", "maxLength": 64 },
+    "consentLevel": {
+      "type": "enumeration",
+      "enum": ["necessary", "analytics", "all"],
+      "default": "analytics"
+    },
+    "botScore": { "type": "float", "default": 0 },
+    "ipHash": { "type": "string", "private": true, "maxLength": 64 },
+    "events": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::analytics-event.analytics-event",
+      "mappedBy": "session"
+    }
+  }
+}

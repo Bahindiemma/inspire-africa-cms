@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "analytics_events",
+  "info": {
+    "singularName": "analytics-event",
+    "pluralName": "analytics-events",
+    "displayName": "Analytics Event",
+    "description": "One row per tracked interaction (pageview, click, scroll depth, section view, form start/submit), linked to an Analytics Session. No PII. Purged after ANALYTICS_RETENTION_MONTHS."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-api": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "pageview",
+        "click",
+        "scroll_depth",
+        "section_view",
+        "outbound_click",
+        "form_start",
+        "form_submit",
+        "session_end"
+      ],
+      "required": true
+    },
+    "path": { "type": "string", "maxLength": 512 },
+    "pageTitle": { "type": "string", "maxLength": 255 },
+    "referrer": { "type": "string", "maxLength": 512 },
+    "target": { "type": "text" },
+    "sectionId": { "type": "string", "maxLength": 128 },
+    "scrollDepth": { "type": "integer", "min": 0, "max": 100 },
+    "occurredAt": { "type": "datetime" },
+    "meta": { "type": "json" },
+    "session": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::analytics-session.analytics-session",
+      "inversedBy": "events"
+    }
+  }
+}

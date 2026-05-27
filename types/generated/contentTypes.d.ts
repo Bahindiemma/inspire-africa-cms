@@ -440,6 +440,296 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAnalyticsDailyRollupAnalyticsDailyRollup
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'analytics_daily_rollups';
+  info: {
+    description: 'Pre-aggregated daily metrics built by the nightly cron, so the dashboard never scans raw events. One row per calendar day (UTC). Retained longer than raw events for long-term trend reporting.';
+    displayName: 'Analytics Daily Rollup';
+    pluralName: 'analytics-daily-rollups';
+    singularName: 'analytics-daily-rollup';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-api': {
+      visible: false;
+    };
+    'content-manager': {
+      visible: true;
+    };
+  };
+  attributes: {
+    byCountry: Schema.Attribute.JSON;
+    byDevice: Schema.Attribute.JSON;
+    byPath: Schema.Attribute.JSON;
+    byReferrer: Schema.Attribute.JSON;
+    bySection: Schema.Attribute.JSON;
+    consentAll: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    consentAnalytics: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    events: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::analytics-daily-rollup.analytics-daily-rollup'
+    > &
+      Schema.Attribute.Private;
+    pageviews: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    scrollDepthBuckets: Schema.Attribute.JSON;
+    sessions: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiAnalyticsEventAnalyticsEvent
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'analytics_events';
+  info: {
+    description: 'One row per tracked interaction (pageview, click, scroll depth, section view, form start/submit), linked to an Analytics Session. No PII. Purged after ANALYTICS_RETENTION_MONTHS.';
+    displayName: 'Analytics Event';
+    pluralName: 'analytics-events';
+    singularName: 'analytics-event';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-api': {
+      visible: false;
+    };
+    'content-manager': {
+      visible: true;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::analytics-event.analytics-event'
+    > &
+      Schema.Attribute.Private;
+    meta: Schema.Attribute.JSON;
+    occurredAt: Schema.Attribute.DateTime;
+    pageTitle: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    path: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 512;
+      }>;
+    publishedAt: Schema.Attribute.DateTime;
+    referrer: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 512;
+      }>;
+    scrollDepth: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+    sectionId: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+    session: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::analytics-session.analytics-session'
+    >;
+    target: Schema.Attribute.Text;
+    type: Schema.Attribute.Enumeration<
+      [
+        'pageview',
+        'click',
+        'scroll_depth',
+        'section_view',
+        'outbound_click',
+        'form_start',
+        'form_submit',
+        'session_end',
+      ]
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiAnalyticsSessionAnalyticsSession
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'analytics_sessions';
+  info: {
+    description: 'One row per consented visitor session. Privacy by design: the raw IP is never stored \u2014 only a salted hash (ipHash, private) and a coarse geo (country/region/city) derived server-side. Rows are created only after the visitor grants analytics consent and are purged after ANALYTICS_RETENTION_MONTHS.';
+    displayName: 'Analytics Session';
+    pluralName: 'analytics-sessions';
+    singularName: 'analytics-session';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-api': {
+      visible: false;
+    };
+    'content-manager': {
+      visible: true;
+    };
+  };
+  attributes: {
+    botScore: Schema.Attribute.Float & Schema.Attribute.DefaultTo<0>;
+    browser: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 64;
+      }>;
+    city: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+    consentLevel: Schema.Attribute.Enumeration<
+      ['necessary', 'analytics', 'all']
+    > &
+      Schema.Attribute.DefaultTo<'analytics'>;
+    country: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 2;
+      }>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    deviceType: Schema.Attribute.Enumeration<
+      ['mobile', 'tablet', 'desktop', 'bot', 'unknown']
+    > &
+      Schema.Attribute.DefaultTo<'unknown'>;
+    entryPath: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 512;
+      }>;
+    eventCount: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    events: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::analytics-event.analytics-event'
+    >;
+    exitPath: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 512;
+      }>;
+    firstSeen: Schema.Attribute.DateTime;
+    ipHash: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 64;
+      }>;
+    lastSeen: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::analytics-session.analytics-session'
+    > &
+      Schema.Attribute.Private;
+    os: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 64;
+      }>;
+    pageviewCount: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    referrerHost: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    region: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+    sessionId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 64;
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    utmCampaign: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+    utmMedium: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+    utmSource: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+  };
+}
+
 export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
   collectionName: 'authors';
   info: {
@@ -1848,6 +2138,9 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::analytics-daily-rollup.analytics-daily-rollup': ApiAnalyticsDailyRollupAnalyticsDailyRollup;
+      'api::analytics-event.analytics-event': ApiAnalyticsEventAnalyticsEvent;
+      'api::analytics-session.analytics-session': ApiAnalyticsSessionAnalyticsSession;
       'api::author.author': ApiAuthorAuthor;
       'api::blog-post.blog-post': ApiBlogPostBlogPost;
       'api::candidate.candidate': ApiCandidateCandidate;
