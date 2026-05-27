@@ -1,122 +1,132 @@
 # INSPIRE AFRICA — CMS (Strapi v5)
 
-Headless CMS for the [INSPIRE AFRICA Next.js website](../INSPIRE%20AFRICA%20WEBSITE/).
-Every string, image, link, color, blog post, SEO meta, and form copy on the
-public site is sourced from here via REST.
+> Headless CMS for the [INSPIRE AFRICA Next.js website](../INSPIRE%20AFRICA%20WEBSITE/).
+> Every string, image, link, colour, blog post, SEO meta and form copy on the
+> public site is sourced from here via REST, plus a first-party, consent-gated
+> visitor-analytics subsystem.
+>
+> Last reviewed: 2026-05-27 (commit 262ccc6)
 
-## Quick start
+## What it is
+
+A TypeScript Strapi v5 application that:
+
+- Stores all public-site content (pages built from Dynamic Zones, blog posts,
+  corridors, legal documents, job postings, navigation, site settings, design
+  tokens, form definitions). See [`docs/content-model.md`](./docs/content-model.md).
+- Exposes a read-only public REST API (Bearer token) the Next.js app consumes,
+  plus an anonymous `POST /api/form-submissions` for forms. See
+  [`docs/api-reference.md`](./docs/api-reference.md).
+- Receives first-party analytics batches at `POST /api/analytics/collect`,
+  derives coarse geo + device server-side, stores **no raw IP**, and renders a
+  Recharts dashboard in the admin. See [`docs/analytics.md`](./docs/analytics.md).
+- Fires a revalidation webhook into the Next.js app on every publish, so the
+  live site updates within seconds.
+
+## Stack & versions
+
+| Layer | Choice | Source |
+|-------|--------|--------|
+| CMS | **Strapi v5.46.1** (TypeScript) | `package.json` |
+| Runtime | Node `>=20 <=22` | `package.json` `engines` |
+| Database | **MySQL 8 / MariaDB 10.11+** (`mysql2`) in production; PostgreSQL (`pg`) + SQLite (`better-sqlite3`) also wired | `config/database.ts`, `package.json` |
+| Auth (API) | Strapi API token (public reads) + Strapi JWT (7-day) | `config/plugins.ts` |
+| Auth (SSO, optional) | Keycloak OIDC custom strategy | `src/extensions/users-permissions/strategies/keycloak.ts` |
+| Media | `local` (production volume) by default; `aws-s3` / `cloudinary` env-toggled | `config/plugins.ts` |
+| Email | SendGrid (provider env-toggled) | `config/plugins.ts` |
+| Charts (admin) | Recharts | `src/admin/pages/Analytics/index.tsx` |
+| Cache invalidation | DB lifecycle webhook → Next.js `/api/revalidate` | `src/middlewares/revalidate-frontend.ts` |
+
+> NOTE: `config/database.ts` defaults `DATABASE_CLIENT` to `postgres` when the
+> env var is unset, but the project and all production/compose configs set
+> `DATABASE_CLIENT=mysql`. Always set it explicitly.
+
+## Prerequisites
+
+- Node 20.x (22.x max).
+- A database: MySQL 8 / MariaDB 10.11+ (production), or SQLite for zero-setup
+  local prototyping, or PostgreSQL.
+- For Docker builds: Docker with BuildKit; `vips` is installed in-image for
+  `sharp`.
+
+## Quickstart (local)
 
 ```bash
 npm install
 cp .env.example .env
-# 1. generate APP_KEYS, JWT secrets etc — see .env.example
-# 2. create the MySQL database + user:
-#    CREATE DATABASE inspire_africa_cms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-#    CREATE USER 'strapi'@'%' IDENTIFIED BY '<password>';
-#    GRANT ALL PRIVILEGES ON inspire_africa_cms.* TO 'strapi'@'%';
-#    FLUSH PRIVILEGES;
-# 3. set DATABASE_* in .env to match
+# 1. Generate APP_KEYS + the *_SECRET / *_SALT values (see docs/environment.md).
+#    openssl rand -base64 32   (one per secret; APP_KEYS needs 4 comma-separated)
+# 2. Pick a database in .env:
+#    - SQLite (fastest):  DATABASE_CLIENT=sqlite  DATABASE_FILENAME=.tmp/data.db
+#    - MySQL:             DATABASE_CLIENT=mysql + DATABASE_* (see below)
 npm run develop      # http://localhost:1337/admin
 ```
 
-> No MySQL installed locally? Two zero-setup paths:
-> - **SQLite for prototyping**: set `DATABASE_CLIENT=sqlite` + `DATABASE_FILENAME=.tmp/data.db`. Boots in seconds, no DB to install.
-> - **Docker MySQL**: `docker run --name inspire-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=inspire_africa_cms -p 3306:3306 -d mysql:8 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci`
+MySQL via Docker, if you don't have one locally:
 
-First boot will create the admin tables. Then:
+```bash
+docker run --name inspire-mysql -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=inspire_africa_cms -p 3306:3306 -d mysql:8 \
+  --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+```
 
-1. Create the super-admin (web UI walks you through it).
-2. **Settings → API Tokens → Create new** — name `nextjs-public`, type `Read-only`. Copy the token into the Next.js app's `.env` as `STRAPI_PUBLIC_TOKEN`.
-3. **Settings → Users & Permissions → Roles → Public** — uncheck everything. The public token controls all read access; the anonymous Public role only needs `POST` on `form-submission`.
-4. *(Optional)* `npm run seed:roles` — idempotently creates `inspire-admin`, `inspire-editor`, `inspire-viewer` roles with correct permissions.
+First boot runs the bootstrap seeders (roles, admin roles, public API token,
+content). Then create the super-admin in the web UI. Full walkthrough:
+[`docs/local-development.md`](./docs/local-development.md).
 
-## Stack
+## NPM scripts
 
-| Layer            | Choice                                                              |
-| ---------------- | ------------------------------------------------------------------- |
-| CMS              | Strapi v5.13 (TypeScript)                                           |
-| Database         | **MySQL 8 / MariaDB 10.11+** (default); PostgreSQL also wired      |
-| Auth             | Keycloak OIDC (custom strategy) + Strapi API tokens for public      |
-| Media            | AWS S3 + CloudFront (default), Cloudinary alternate, env-toggled    |
-| Email            | SendGrid                                                            |
-| Cache invalidation| Lifecycle webhook → Next.js `/api/revalidate`                       |
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `develop` | `strapi develop` | Dev server with admin auto-reload |
+| `start` | `strapi start` | Production server (expects a prior `build`) |
+| `build` | `strapi build` | Compile the admin bundle + TS config |
+| `strapi` | `strapi` | Raw Strapi CLI passthrough |
+| `seed:roles` | `strapi exec ts-node src/bootstrap/seed-roles.ts` | Re-seed the users-permissions roles only |
+| `test:smoke` | `bash scripts/smoke-test.sh` | HTTP smoke test of public reads / PII blocks / form POST (needs `STRAPI_BASE_URL` + `STRAPI_PUBLIC_TOKEN`) |
 
-## Layout
+> The bootstrap seeders also run automatically on every boot from
+> `src/index.ts`; `seed:roles` is only needed to re-apply roles without a full
+> reboot. See [`docs/seeding.md`](./docs/seeding.md).
+
+## Project structure
 
 ```
 inspire-africa-cms/
-├── config/                       Strapi configuration (server, db, plugins, …)
+├── config/                  Strapi config (server, database, plugins, middlewares, admin, api)
 ├── src/
-│   ├── api/                      Collection types + their controllers/services/routes
-│   ├── components/               Reusable schema fragments (shared, sections, cards, blocks)
-│   ├── extensions/               User-permissions OIDC strategy lives here
-│   ├── policies/                 Route-level access guards
-│   ├── middlewares/              Frontend revalidation webhook lives here
-│   ├── bootstrap/                Idempotent role + permission seeding
-│   └── index.ts                  Strapi entrypoint (register + bootstrap)
-├── docs/                         Operational + integration documentation
-│   ├── api-contract.md           Every public endpoint with example payloads
-│   ├── deployment.md             Runbook for production deploy
-│   ├── keycloak-setup.md         Realm + client configuration
-│   └── frontend-integration.md   Advisory diff for the Next.js side
-├── Dockerfile
-├── render.yaml                   Render.com one-click config (example)
-└── .env.example                  Every env var documented
+│   ├── index.ts             Entrypoint: register() (Keycloak routes) + bootstrap() (4 seeders)
+│   ├── api/                  Content types: schema.json + controllers/routes/services
+│   │   └── analytics/        Custom POST /api/analytics/collect (no model)
+│   ├── components/           Schema fragments: sections/ blocks/ cards/ shared/ tokens/
+│   ├── admin/                Admin customisation (app.tsx) + Analytics dashboard page
+│   ├── bootstrap/            seed-roles, seed-admin-roles, ensure-public-api-token, seed-content
+│   ├── crons/                analytics-maintenance (nightly rollup + purge)
+│   ├── extensions/           users-permissions Keycloak OIDC strategy
+│   ├── middlewares/          revalidate-frontend, disable-public-register
+│   ├── policies/             is-public-readable, is-analytics-ingest
+│   └── utils/analytics/      ip, geo, ua, validate, rate-limit
+├── types/generated/         Strapi-generated TS types (components + contentTypes)
+├── docs/                     This documentation set
+├── Dockerfile               Multi-stage (builder / proddeps / runner)
+├── render.yaml              Render.com blueprint (alternative host)
+└── .env.example             Documented env template
 ```
 
-## Content model — at a glance
+## Documentation
 
-| Type                | API ID            | Kind       | Public via token? |
-| ------------------- | ----------------- | ---------- | ----------------- |
-| Site Settings       | `site-setting`    | Single     | ✓ read            |
-| Design Tokens       | `design-tokens`   | Single     | ✓ read            |
-| Navigation          | `navigation`      | Single     | ✓ read            |
-| Page                | `page`            | Collection | ✓ read (published)|
-| Corridor            | `corridor`        | Collection | ✓ read            |
-| Blog Post           | `blog-post`       | Collection | ✓ read (published)|
-| Tag                 | `tag`             | Collection | ✓ read            |
-| Author              | `author`          | Collection | ✓ read            |
-| Legal Document      | `legal-document`  | Collection | ✓ read (published)|
-| Job Posting         | `job-posting`     | Collection | ✓ read (published)|
-| Form Definition     | `form-definition` | Collection | ✓ read            |
-| Form Submission     | `form-submission` | Collection | ✗ create only     |
-| Candidate           | `candidate`       | Collection | ✗ admin only      |
+Start at [`docs/README.md`](./docs/README.md) — the index for the whole set.
+Highlights:
 
-## Admin branding
-
-The Strapi admin login page and dashboard are branded for INSPIRE AFRICA.
-
-| Element                  | What we customised                                     | Where it lives                                  |
-| ------------------------ | ------------------------------------------------------ | ----------------------------------------------- |
-| Login page logo          | Transparent PNG wordmark                               | `src/admin/extensions/auth-logo.png`            |
-| Left-menu logo (sidebar) | Same wordmark, smaller render                          | `src/admin/extensions/menu-logo.png`            |
-| Browser favicon          | Yellow square + bold "I" (256×256, square crop)        | `src/admin/extensions/favicon.png`              |
-| Browser tab title        | `INSPIRE AFRICA — CMS`                                  | `config/admin.ts` + `src/admin/app.tsx`         |
-| Login welcome copy       | `INSPIRE AFRICA — Sign in to the labour-mobility CMS`  | `src/admin/app.tsx` (translations override)    |
-| Workspace name           | `Labour Mobility CMS`                                  | `src/admin/app.tsx`                             |
-| Primary color            | Brand yellow `#F8BD26`                                  | `src/admin/app.tsx` (theme.light/dark)         |
-| Display font             | Madimi One on headings + brand text                     | `src/admin/app.tsx` (bootstrap injects CSS)     |
-| Tutorials / video links  | Hidden                                                  | `src/admin/app.tsx` (`tutorials: false`)        |
-| Release-notes popups     | Hidden                                                  | `src/admin/app.tsx` (`notifications.releases`)  |
-| Strapi blog / promo widgets | Hidden via CSS                                       | `src/admin/app.tsx` (`bootstrap` CSS overrides) |
-
-After any change in `src/admin/`, **rebuild the admin bundle**:
-
-```bash
-npm run build
-# then restart:
-npm run start            # production
-# or
-npm run develop          # dev with auto-reload on src/admin/* changes
-```
-
-The first build takes ~30 s. Subsequent dev rebuilds are near-instant.
-
-To replace the logo with an updated version: drop a new `auth-logo.png` /
-`menu-logo.png` into `src/admin/extensions/` and rebuild. Same path
-works for `favicon.png`.
+- [Architecture](./docs/architecture.md) · [Content model / ERD](./docs/content-model.md) · [Seeding & RESEED](./docs/seeding.md)
+- [API reference](./docs/api-reference.md) · [Analytics subsystem](./docs/analytics.md) · [RBAC & roles](./docs/rbac.md)
+- [Environment variables](./docs/environment.md) · [Deployment & build](./docs/deployment.md) · [Operations / runbooks](./docs/operations.md)
+- [Security & privacy](./docs/security-privacy.md) · [Local development](./docs/local-development.md) · [Known issues](./docs/known-issues.md) · [Glossary](./docs/glossary.md)
 
 ## Deploying
 
-See [`docs/deployment.md`](./docs/deployment.md) for the full runbook.
-TL;DR: managed **MySQL** (DigitalOcean Managed DB / AWS RDS MySQL 8 / PlanetScale) + Render or Railway for Strapi + CloudFront in front of S3 + Keycloak Cloud or self-hosted.
+Production runs as a Docker image (`ghcr.io/bahindiemma/inspire-africa-cms`) in
+a `docker compose` stack (`db` MySQL + `cms` Strapi + `web` Next.js) on a
+Contabo VPS behind host nginx (TLS). The GHCR package is private, so the server
+builds the image on-host when it can't pull. Full runbook:
+[`docs/deployment.md`](./docs/deployment.md).
