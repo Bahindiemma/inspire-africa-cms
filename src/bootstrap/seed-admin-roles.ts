@@ -39,6 +39,21 @@ interface AdminRoleSpec {
     | 'plugin::content-manager.explorer.delete'
     | 'plugin::content-manager.explorer.publish'
   >;
+  /**
+   * Raw permissions applied verbatim, for capabilities that don't fit the
+   * simple "content-type × action" grid above — e.g. managing END-USERS
+   * (`plugin::users-permissions.user`) and reading users-permissions roles
+   * so the "Role" dropdown populates when assigning a role.
+   *
+   * `subject: null` is correct for plugin settings permissions (roles.read);
+   * `properties` mirrors the exact shape Strapi stores (`{ fields: null,
+   * locales: null }` = all fields for explorer actions, `{}` for settings).
+   */
+  extraPermissions?: Array<{
+    action: string;
+    subject: string | null;
+    properties: Record<string, unknown>;
+  }>;
 }
 
 const PUBLISHABLE_TYPES = [
@@ -74,7 +89,7 @@ const ROLE_SPECS: AdminRoleSpec[] = [
     name: 'Content Manager',
     code: 'inspire-content-manager',
     description:
-      'Manage every editorial collection (pages, blog, jobs, corridors, tags, authors, form-definitions). Cannot edit Site Settings / Design Tokens / Navigation, cannot manage admin users.',
+      'Manage every editorial collection (pages, blog, jobs, corridors, tags, authors, form-definitions) AND manage END-USERS (API consumers): create users and assign them users-permissions roles. Cannot edit Site Settings / Design Tokens / Navigation, and cannot manage ADMIN-PANEL users (Settings → Administration Panel → Users stays Super-Admin-only).',
     contentTypes: ALL_EDITORIAL_TYPES,
     actions: [
       'plugin::content-manager.explorer.read',
@@ -82,6 +97,36 @@ const ROLE_SPECS: AdminRoleSpec[] = [
       'plugin::content-manager.explorer.update',
       'plugin::content-manager.explorer.delete',
       'plugin::content-manager.explorer.publish',
+    ],
+    // Manage END-USERS via Content Manager → Users, and read U&P roles so the
+    // "Role" relation dropdown populates (the fix for the "Policy Failed"
+    // error when assigning a role on the user-create screen).
+    extraPermissions: [
+      {
+        action: 'plugin::content-manager.explorer.read',
+        subject: 'plugin::users-permissions.user',
+        properties: { fields: null, locales: null },
+      },
+      {
+        action: 'plugin::content-manager.explorer.create',
+        subject: 'plugin::users-permissions.user',
+        properties: { fields: null, locales: null },
+      },
+      {
+        action: 'plugin::content-manager.explorer.update',
+        subject: 'plugin::users-permissions.user',
+        properties: { fields: null, locales: null },
+      },
+      {
+        action: 'plugin::content-manager.explorer.delete',
+        subject: 'plugin::users-permissions.user',
+        properties: { fields: null, locales: null },
+      },
+      {
+        action: 'plugin::users-permissions.roles.read',
+        subject: null,
+        properties: {},
+      },
     ],
   },
   {
@@ -147,8 +192,25 @@ export async function seedAdminRoles(strapi: Core.Strapi) {
         });
       }
     }
+
+    // Apply any raw "extra" permissions (e.g. end-user management).
+    for (const perm of spec.extraPermissions ?? []) {
+      await permRepo.create({
+        data: {
+          action: perm.action,
+          subject: perm.subject,
+          properties: perm.properties,
+          conditions: [],
+          role: role.id,
+        },
+      });
+    }
+
+    const extraCount = spec.extraPermissions?.length ?? 0;
     strapi.log.info(
-      `[seed-admin-roles] ${spec.code}: ${spec.contentTypes.length} types × ${spec.actions.length} actions applied`
+      `[seed-admin-roles] ${spec.code}: ${spec.contentTypes.length} types × ${spec.actions.length} actions` +
+        (extraCount ? ` + ${extraCount} extra permission(s)` : '') +
+        ' applied'
     );
   }
 }
