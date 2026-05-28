@@ -130,6 +130,9 @@ export async function seedContent(strapi: Core.Strapi) {
     { country: 'USA', displayName: 'USA', sectors: 'Tech · Hospitality', order: 3 },
     { country: 'Canada', displayName: 'Canada', sectors: 'Care · Construction', order: 4 },
     { country: 'Australia', displayName: 'Australia', sectors: 'Care · Mining', order: 5 },
+    // Mauritius corridor removed per CEO direction 2026-05-27. Note: reseed
+    // performs upsert-by-slug only — the existing Mauritius row must be
+    // deleted manually in the Strapi admin (Content Manager → Corridor).
     { country: 'Saudi Arabia', displayName: 'Saudi Arabia', sectors: 'Construction · Care', order: 7 },
   ];
   for (const c of corridors) {
@@ -180,7 +183,7 @@ export async function seedContent(strapi: Core.Strapi) {
       excerpt:
         'A year after the ILO\'s latest fee data, the gap between policy and practice along West Africa–Gulf corridors is still costing workers up to nine months of wages. Here\'s what the numbers show — and what changes when employers pay.',
       category: 'Ethical Recruitment',
-      heroAlt: 'Two African professionals in conversation across a desk',
+      heroAlt: 'ILO report cover — Minimum wages in Africa: wage disparities and the redistributive potential of minimum wages (ILO, 2025)',
       tags: ['Worker protection', 'Recruitment fees', 'Gulf corridor', 'Policy'],
       body: [
         { __component: 'blocks.lede', text: 'The official position across most destination markets is unambiguous: workers should not pay to be recruited. The lived reality in 2026 is something else.' },
@@ -195,7 +198,7 @@ export async function seedContent(strapi: Core.Strapi) {
       excerpt:
         'The 2026 Health and Care Worker visa changes have tightened the front door without fixing the staffing crisis behind it. We unpack what changed, who it affects, and why structured pathways now matter more than ever.',
       category: 'Policy & Markets',
-      heroAlt: 'A team of African healthcare professionals smiling together',
+      heroAlt: 'UK Home Office · UK Visas & Immigration signage (photo: PA)',
       tags: ['United Kingdom', 'Healthcare', 'Visa policy', 'NHS'],
       body: [
         { __component: 'blocks.lede', text: 'The UK\'s adult social-care vacancy rate sits above 8.3% as we go to publication.' },
@@ -213,7 +216,7 @@ export async function seedContent(strapi: Core.Strapi) {
       excerpt:
         'African workers abroad now send home more than $100B a year — more than foreign aid and FDI combined. But remittances reach households, not economies. Circular migration is how that changes.',
       category: 'Development Economics',
-      heroAlt: 'An African farmer in a field, symbolising returning skills and capital',
+      heroAlt: 'ILO report cover — Minimum wages in Africa: wage disparities and the redistributive potential of minimum wages (ILO, 2025)',
       tags: ['Remittances', 'Circular migration', 'Economic development'],
       body: [
         { __component: 'blocks.lede', text: 'Remittances to Sub-Saharan Africa crossed $100 billion in 2025 — larger than total FDI and three times official development assistance.' },
@@ -490,7 +493,7 @@ const WORKERS_PAGE = {
       __component: 'sections.final-cta',
       eyebrow: 'Your future starts here',
       headingHtml: "<span class=\"italic-accent\">Take the first step —</span>Join the<br/>community.",
-      lede: "Free membership. The single, supported route into INSPIRE's ecosystem.",
+      lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
       primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true, utmSource: 'workers_final' },
     },
   ],
@@ -705,7 +708,7 @@ const APPROACH_PAGE = {
       __component: 'sections.final-cta',
       eyebrow: 'Your move',
       headingHtml: '<span class="italic-accent">Ready to begin?</span>Join the<br/>community.',
-      lede: 'Free membership. Direct route into the INSPIRE AFRICA ecosystem.',
+      lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem.',
       primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true, utmSource: 'approach_cta' },
     },
   ],
@@ -715,7 +718,7 @@ const JOIN_PAGE = {
   title: 'Join the Community',
   seo: {
     metaTitle: 'Join the Community — INSPIRE AFRICA',
-    metaDescription: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
+    metaDescription: 'Free membership. A vibrant network of African professionals, recruiters and employers — your direct route into the INSPIRE AFRICA ecosystem.',
   },
   sections: [
     {
