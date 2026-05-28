@@ -55,10 +55,12 @@ export async function seedContent(strapi: Core.Strapi) {
         postalCode: 'WC2H 9JQ',
         country: 'United Kingdom',
       },
-      // Single WhatsApp Business contact for both UK and Africa office
-      // cards. WhatsApp-only — no calls. Update via Strapi admin →
-      // Site Setting (no redeploy needed).
-      contactUkPhone: '+256 750 329 751',
+      // Single UK · Registered Office card displays two numbers:
+      //   contactUkPhone     → London landline (callable, tel: link)
+      //   contactAfricaPhone → WhatsApp Business number (wa.me, no calls)
+      // `contactAfricaPhone` is the legacy schema field, now repurposed for
+      // the WhatsApp number — the Africa Regional Office card was retired.
+      contactUkPhone: '+44 20 7097 3943',
       contactAfricaPhone: '+256 750 329 751',
       contactEmail: 'info@inspireafricans.com',
       contactLegalEmail: 'legal@inspireafrica.onmicrosoft.com',
