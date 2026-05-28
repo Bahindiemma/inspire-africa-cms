@@ -65,7 +65,9 @@ export async function seedContent(strapi: Core.Strapi) {
         { platform: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/INSPIREAFRICAN', handle: 'INSPIREAFRICAN', iconKey: 'facebook', order: 2 },
         // Placeholder handles for X, Instagram, TikTok pending account claim.
         // Edit live values via Strapi admin (Single Type → Site Setting → socialLinks).
-        { platform: 'x', label: 'X (Twitter)', url: 'https://x.com/inspireafricans', handle: 'inspireafricans', iconKey: 'x', order: 3 },
+        // Stored as 'twitter' (schema enum predates the X rename); frontend
+        // SocialIcons maps both 'x' and 'twitter' → the X glyph.
+        { platform: 'twitter', label: 'X (Twitter)', url: 'https://x.com/inspireafricans', handle: 'inspireafricans', iconKey: 'x', order: 3 },
         { platform: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/inspireafricans', handle: 'inspireafricans', iconKey: 'instagram', order: 4 },
         { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@inspireafricans', handle: 'inspireafricans', iconKey: 'tiktok', order: 5 },
         // WhatsApp Business — wa.me link built from the UK contact number;
