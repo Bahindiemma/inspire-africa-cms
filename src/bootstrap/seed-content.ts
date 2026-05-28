@@ -55,8 +55,12 @@ export async function seedContent(strapi: Core.Strapi) {
         postalCode: 'WC2H 9JQ',
         country: 'United Kingdom',
       },
+      // Both numbers surface as WhatsApp-only (no calls) on the site. Africa
+      // office relocated to WorkMax Africa Ltd (The Gambia) — placeholder
+      // until the registered Gambian WhatsApp SIM is provisioned; update via
+      // Strapi admin → Site Setting → contactAfricaPhone (no redeploy needed).
       contactUkPhone: '+44 20 7097 3943',
-      contactAfricaPhone: '+254 784 041 405',
+      contactAfricaPhone: '+220 000 0000',
       contactEmail: 'info@inspireafricans.com',
       contactLegalEmail: 'legal@inspireafrica.onmicrosoft.com',
       contactSpeakupEmail: 'speakup@inspireafrica.onmicrosoft.com',
