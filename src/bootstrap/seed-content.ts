@@ -55,12 +55,11 @@ export async function seedContent(strapi: Core.Strapi) {
         postalCode: 'WC2H 9JQ',
         country: 'United Kingdom',
       },
-      // Both numbers surface as WhatsApp-only (no calls) on the site. Africa
-      // office relocated to WorkMax Africa Ltd (The Gambia) — placeholder
-      // until the registered Gambian WhatsApp SIM is provisioned; update via
-      // Strapi admin → Site Setting → contactAfricaPhone (no redeploy needed).
-      contactUkPhone: '+44 20 7097 3943',
-      contactAfricaPhone: '+220 000 0000',
+      // Single WhatsApp Business contact for both UK and Africa office
+      // cards. WhatsApp-only — no calls. Update via Strapi admin →
+      // Site Setting (no redeploy needed).
+      contactUkPhone: '+256 750 329 751',
+      contactAfricaPhone: '+256 750 329 751',
       contactEmail: 'info@inspireafricans.com',
       contactLegalEmail: 'legal@inspireafrica.onmicrosoft.com',
       contactSpeakupEmail: 'speakup@inspireafrica.onmicrosoft.com',
@@ -74,9 +73,8 @@ export async function seedContent(strapi: Core.Strapi) {
         { platform: 'twitter', label: 'X (Twitter)', url: 'https://x.com/inspireafricans', handle: 'inspireafricans', iconKey: 'x', order: 3 },
         { platform: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/inspireafricans', handle: 'inspireafricans', iconKey: 'instagram', order: 4 },
         { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@inspireafricans', handle: 'inspireafricans', iconKey: 'tiktok', order: 5 },
-        // WhatsApp Business — wa.me link built from the UK contact number;
-        // swap once the dedicated WhatsApp SIM is registered.
-        { platform: 'whatsapp', label: 'WhatsApp Business', url: 'https://wa.me/442070973943', handle: '+44 20 7097 3943', iconKey: 'whatsapp', order: 6 },
+        // WhatsApp Business — same number as the contact-page phones.
+        { platform: 'whatsapp', label: 'WhatsApp Business', url: 'https://wa.me/256750329751', handle: '+256 750 329 751', iconKey: 'whatsapp', order: 6 },
       ],
       communityBaseUrl: 'https://inspire-africa.mn.co/spaces/20105635',
   }).catch((e: any) => strapi.log.warn('[seed-content] site-setting: ' + e.message));
