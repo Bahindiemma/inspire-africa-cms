@@ -61,8 +61,16 @@ export async function seedContent(strapi: Core.Strapi) {
       contactLegalEmail: 'legal@inspireafrica.onmicrosoft.com',
       contactSpeakupEmail: 'speakup@inspireafrica.onmicrosoft.com',
       socialLinks: [
-        { platform: 'linkedin', label: 'LinkedIn', url: 'https://uk.linkedin.com/company/inspire-africans', handle: 'inspire-africans', iconKey: 'LI', order: 1 },
-        { platform: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/INSPIREAFRICAN', handle: 'INSPIREAFRICAN', iconKey: 'FB', order: 2 },
+        { platform: 'linkedin', label: 'LinkedIn', url: 'https://uk.linkedin.com/company/inspire-africans', handle: 'inspire-africans', iconKey: 'linkedin', order: 1 },
+        { platform: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/INSPIREAFRICAN', handle: 'INSPIREAFRICAN', iconKey: 'facebook', order: 2 },
+        // Placeholder handles for X, Instagram, TikTok pending account claim.
+        // Edit live values via Strapi admin (Single Type → Site Setting → socialLinks).
+        { platform: 'x', label: 'X (Twitter)', url: 'https://x.com/inspireafricans', handle: 'inspireafricans', iconKey: 'x', order: 3 },
+        { platform: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/inspireafricans', handle: 'inspireafricans', iconKey: 'instagram', order: 4 },
+        { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@inspireafricans', handle: 'inspireafricans', iconKey: 'tiktok', order: 5 },
+        // WhatsApp Business — wa.me link built from the UK contact number;
+        // swap once the dedicated WhatsApp SIM is registered.
+        { platform: 'whatsapp', label: 'WhatsApp Business', url: 'https://wa.me/442070973943', handle: '+44 20 7097 3943', iconKey: 'whatsapp', order: 6 },
       ],
       communityBaseUrl: 'https://inspire-africa.mn.co/spaces/20105635',
   }).catch((e: any) => strapi.log.warn('[seed-content] site-setting: ' + e.message));
@@ -183,7 +191,7 @@ export async function seedContent(strapi: Core.Strapi) {
       excerpt:
         'A year after the ILO\'s latest fee data, the gap between policy and practice along West Africa–Gulf corridors is still costing workers up to nine months of wages. Here\'s what the numbers show — and what changes when employers pay.',
       category: 'Ethical Recruitment',
-      heroAlt: 'ILO report cover — Minimum wages in Africa: wage disparities and the redistributive potential of minimum wages (ILO, 2025)',
+      heroAlt: 'Nigerian construction workers erecting rebar columns — the source-side reality of the labour pipelines feeding Gulf-corridor recruitment',
       tags: ['Worker protection', 'Recruitment fees', 'Gulf corridor', 'Policy'],
       body: [
         { __component: 'blocks.lede', text: 'The official position across most destination markets is unambiguous: workers should not pay to be recruited. The lived reality in 2026 is something else.' },
@@ -444,8 +452,8 @@ const WORKERS_PAGE = {
       eyebrow: 'For workers',
       headingHtml: '<span class="small-italic">Work abroad.</span>Earn more.<br/><span class="accent">Change<br/>your future.</span>',
       lede: 'Access real international job opportunities with fair recruitment, structured preparation and no large up-front costs.',
-      photoUrl: '/images/inspire-handshake-interview.jpg',
-      photoAlt: 'Two African professionals working together on a laptop',
+      photoUrl: '/images/workers-hero-nurse.jpg',
+      photoAlt: "African nurse measuring a patient's blood pressure during a clinical assessment",
       photoCaptionTitle: 'Fair · Transparent',
       photoCaptionSub: 'Protected at every step',
       ctas: [
@@ -512,8 +520,8 @@ const EMPLOYERS_PAGE = {
       eyebrow: 'For employers',
       headingHtml: '<span class="small-italic">Hire faster.</span>Reduce cost.<br/><span class="accent">Increase<br/>certainty.</span>',
       lede: 'Access a reliable pipeline of pre-screened, job-ready African talent through a single, compliant platform.',
-      photoUrl: '/images/inspire-chef-square.jpg',
-      photoAlt: 'Professional in a modern office environment',
+      photoUrl: '/images/employers-hero-kitchen.jpg',
+      photoAlt: 'Brigade of African chefs working through service in a busy professional kitchen',
       photoCaptionTitle: 'Ready Now',
       photoCaptionSub: 'Pre-screened, prepared, deployable',
       ctas: [
@@ -595,8 +603,8 @@ const GOVERNMENTS_PAGE = {
       eyebrow: 'For governments & partners',
       headingHtml: '<span class="small-italic">Make migration work —</span>for your<br/><span class="accent">economy.</span>',
       lede: 'INSPIRE AFRICA provides the tools and infrastructure to build transparent, scalable and circular labour mobility pathways.',
-      photoUrl: '/images/inspire-farmer-agriculture.jpg',
-      photoAlt: "Architectural sketch of infrastructure — INSPIRE's systemic approach to migration",
+      photoUrl: '/images/governments-hero-market.jpg',
+      photoAlt: 'Busy Senegalese market scene — traders and buyers moving goods through a working commercial corridor',
       photoCaptionTitle: 'Systems-led',
       photoCaptionSub: 'From migration to mobility infrastructure',
       ctas: [
@@ -667,8 +675,8 @@ const APPROACH_PAGE = {
       eyebrow: 'Our approach',
       headingHtml: '<span class="small-italic">Not recruitment.</span><span class="accent">Infrastructure.</span>',
       lede: 'A structured system for global labour mobility — built around four principles: ethical, circular, structured, worker-centred.',
-      photoUrl: '/images/inspire-farmer-agriculture.jpg',
-      photoAlt: "Architectural sketch of infrastructure — the visual metaphor for INSPIRE's mobility platform",
+      photoUrl: '/images/approach-hero-tailor.jpg',
+      photoAlt: 'African tailor focused on a stitching task — skilled, hands-on work being built into a career',
       photoCaptionTitle: 'Earn · Learn · Return',
       photoCaptionSub: 'The circular model',
       ctas: [
@@ -727,8 +735,8 @@ const JOIN_PAGE = {
       eyebrow: 'The community',
       headingHtml: '<span class="small-italic">A network of</span>African<br/><span class="accent">professionals,<br/>going global.</span>',
       lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
-      photoUrl: '/images/inspire-healthcare-portrait.jpg',
-      photoAlt: 'Two African professionals collaborating in a working session',
+      photoUrl: '/images/join-hero-construction-team.jpg',
+      photoAlt: 'African construction crew in safety gear working together on a building site',
       photoCaptionTitle: 'Free Forever',
       photoCaptionSub: 'No paywalls. No hidden fees.',
       ctas: [
