@@ -154,7 +154,7 @@ export async function seedContent(strapi: Core.Strapi) {
       if (created) await strapi.documents('api::corridor.corridor').publish({ documentId: created.documentId } as any).catch(() => {});
     }
   }
-  strapi.log.info('[seed-content] 7 corridors upserted');
+  strapi.log.info(`[seed-content] ${corridors.length} corridors upserted`);
 
   // ---------- 5. Author ----------
   let editorialAuthor = await strapi.documents('api::author.author').findFirst({ filters: { slug: 'editorial-desk' } as any });
