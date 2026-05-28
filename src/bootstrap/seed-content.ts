@@ -55,28 +55,25 @@ export async function seedContent(strapi: Core.Strapi) {
         postalCode: 'WC2H 9JQ',
         country: 'United Kingdom',
       },
-      // Single UK · Registered Office card displays two numbers:
-      //   contactUkPhone     → London landline (callable, tel: link)
-      //   contactAfricaPhone → WhatsApp Business number (wa.me, no calls)
-      // `contactAfricaPhone` is the legacy schema field, now repurposed for
-      // the WhatsApp number — the Africa Regional Office card was retired.
-      contactUkPhone: '+44 20 7097 3943',
+      // UK landline removed 2026-05-28 per CEO direction (slide 8). Both
+      // schema fields hold the WhatsApp Business number; UI only renders
+      // `contactAfricaPhone`.
+      contactUkPhone: '+256 750 329 751',
       contactAfricaPhone: '+256 750 329 751',
       contactEmail: 'info@inspireafricans.com',
       contactLegalEmail: 'legal@inspireafrica.onmicrosoft.com',
       contactSpeakupEmail: 'speakup@inspireafrica.onmicrosoft.com',
       socialLinks: [
+        // Confirmed handles 2026-05-28 (slides 18–21). Stored as 'twitter'
+        // (Strapi enum predates the X rename); the footer maps 'x' and
+        // 'twitter' iconKeys to the same X glyph.
         { platform: 'linkedin', label: 'LinkedIn', url: 'https://uk.linkedin.com/company/inspire-africans', handle: 'inspire-africans', iconKey: 'linkedin', order: 1 },
         { platform: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/INSPIREAFRICAN', handle: 'INSPIREAFRICAN', iconKey: 'facebook', order: 2 },
-        // Placeholder handles for X, Instagram, TikTok pending account claim.
-        // Edit live values via Strapi admin (Single Type → Site Setting → socialLinks).
-        // Stored as 'twitter' (schema enum predates the X rename); frontend
-        // SocialIcons maps both 'x' and 'twitter' → the X glyph.
-        { platform: 'twitter', label: 'X (Twitter)', url: 'https://x.com/inspireafricans', handle: 'inspireafricans', iconKey: 'x', order: 3 },
-        { platform: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/inspireafricans', handle: 'inspireafricans', iconKey: 'instagram', order: 4 },
-        { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@inspireafricans', handle: 'inspireafricans', iconKey: 'tiktok', order: 5 },
-        // WhatsApp Business — same number as the contact-page phones.
-        { platform: 'whatsapp', label: 'WhatsApp Business', url: 'https://wa.me/256750329751', handle: '+256 750 329 751', iconKey: 'whatsapp', order: 6 },
+        { platform: 'twitter', label: 'X (Twitter)', url: 'https://x.com/INSPIRE_AFRICAN', handle: 'INSPIRE_AFRICAN', iconKey: 'x', order: 3 },
+        { platform: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/inspire_africans/', handle: 'inspire_africans', iconKey: 'instagram', order: 4 },
+        { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@inspire_africans', handle: 'inspire_africans', iconKey: 'tiktok', order: 5 },
+        { platform: 'youtube', label: 'YouTube', url: 'https://www.youtube.com/@InspireGroupTV', handle: 'InspireGroupTV', iconKey: 'youtube', order: 6 },
+        { platform: 'whatsapp', label: 'WhatsApp Business', url: 'https://wa.me/256750329751', handle: '+256 750 329 751', iconKey: 'whatsapp', order: 7 },
       ],
       communityBaseUrl: 'https://inspire-africa.mn.co/spaces/20105635',
   }).catch((e: any) => strapi.log.warn('[seed-content] site-setting: ' + e.message));
@@ -623,12 +620,12 @@ const GOVERNMENTS_PAGE = {
       tone: 'alt',
       eyebrow: 'The current reality',
       headingHtml: 'Migration is happening —<br/><span class="yellow">but not working optimally.</span>',
-      lede: 'Unmanaged migration creates risk for citizens, lost opportunity for economies, and limited oversight for governments.',
+      lede: 'Unmanaged migration creates risk for citizens, lost opportunity for economies and limited oversight for governments.',
       items: [
         { marker: '×', isBad: true, title: 'Irregular migration creates risk and instability', body: 'Without legal channels, citizens move anyway — often through dangerous, exploitative routes.' },
         { marker: '×', isBad: true, title: 'Limited oversight of recruitment pathways', body: 'Informal agents dominate. Government visibility is partial at best.' },
         { marker: '×', isBad: true, title: 'Lost opportunities for skills development and return', body: "Workers leave without a return plan. Skills don't flow back." },
-        { marker: '×', isBad: true, title: 'Remittances are not fully leveraged', body: 'Capital arrives at the household level but rarely connects to national development priorities.' },
+        { marker: '×', isBad: true, title: 'Remittances are flows. Development needs systems.', body: 'Remittances to individual households improve welfare but bypass skills systems, enterprise growth and national investment priorities.' },
       ],
     },
     {
@@ -640,7 +637,7 @@ const GOVERNMENTS_PAGE = {
       items: [
         { marker: '✓', title: 'Transparent sourcing and selection', body: 'Every candidate is traceable end-to-end. No informal subcontracting.' },
         { marker: '✓', title: 'Worker protection and ethical recruitment', body: 'Aligned with international ethical-recruitment standards. Workers pay no fees.' },
-        { marker: '✓', title: 'Data-driven workforce planning', body: 'Visibility into who is moving, where, and what they do — across the full lifecycle.' },
+        { marker: '✓', title: 'Data-driven workforce planning', body: 'Visibility into who is moving, where and what they do — across the full lifecycle.' },
         { marker: '✓', title: 'Scalable international partnerships', body: 'Bilateral pathways designed once, repeatable across corridors and sectors.' },
       ],
     },
@@ -650,9 +647,9 @@ const GOVERNMENTS_PAGE = {
       headingHtml: 'Five steps. <span class="yellow">Five outcomes.</span>',
       lede: 'From defining priority corridors to enabling return and reintegration — a clear, repeatable framework.',
       steps: [
-        { title: 'Define priority sectors and corridors', body: 'Where the national interest sits, and which destination markets align.' },
+        { title: 'Define priority sectors and corridors', body: 'Where the national interest sits, and with which destination markets to align.' },
         { title: 'Establish transparent pathways', body: 'Rules-based, documented, auditable — replacing informal channels.' },
-        { title: 'Prepare and deploy workers', body: 'Readiness, finance, compliance — coordinated by INSPIRE, monitored by government.' },
+        { title: 'Prepare and deploy workers', body: 'Readiness, finance, compliance — operated by INSPIRE AFRICA, monitored by government.' },
         { title: 'Monitor outcomes abroad', body: 'Welfare, performance, integration — tracked across the journey.' },
         { title: 'Enable return and reintegration', body: 'Skills transfer, savings deployment, second-stage opportunities at home.' },
       ],
