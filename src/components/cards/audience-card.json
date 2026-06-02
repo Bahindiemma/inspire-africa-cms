@@ -14,6 +14,10 @@
       "multiple": false,
       "allowedTypes": ["images"]
     },
+    "photoUrl": {
+      "type": "string",
+      "description": "Optional override URL — used by the bootstrap seed to point at pre-existing /public/images/* assets without uploading via the Media Library. Editors should use the `photo` media field; frontend reads `photo.url ?? photoUrl`."
+    },
     "photoAlt": { "type": "string" },
     "tag": { "type": "string", "description": "Top-left badge text, e.g. 'For Workers'." },
     "ctaLabel": { "type": "string", "required": true },
