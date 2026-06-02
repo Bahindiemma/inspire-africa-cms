@@ -40,8 +40,11 @@ function mediaDir(strapi: any): string {
 }
 
 /**
- * Upload one image (idempotent by file name). Returns the media file id,
- * or null if the source file is missing or the upload fails.
+ * Upload one image, or REPLACE it if a media file of the same name
+ * already exists — so a reseed syncs the latest bundled image content
+ * into the Media Library while keeping the same media id (existing
+ * `photo`/`heroImage` relations stay intact and just point at the new
+ * binary). Returns the media file id, or null if the source is missing.
  */
 async function uploadOnce(
   strapi: any,
@@ -49,29 +52,44 @@ async function uploadOnce(
   alt: string
 ): Promise<number | null> {
   const fileName = path.basename(relPath);
+  const abs = path.join(mediaDir(strapi), relPath);
+  if (!fs.existsSync(abs)) {
+    strapi.log.warn(`[seed-media] source not found, skipping: ${relPath}`);
+    return null;
+  }
+  const stats = fs.statSync(abs);
+  const fileArg = {
+    filepath: abs,
+    originalFilename: fileName,
+    mimetype: mimeFor(fileName),
+    size: stats.size,
+  };
   try {
     const existing = await strapi.db
       .query('plugin::upload.file')
       .findOne({ where: { name: fileName } });
-    if (existing) return existing.id;
 
-    const abs = path.join(mediaDir(strapi), relPath);
-    if (!fs.existsSync(abs)) {
-      strapi.log.warn(`[seed-media] source not found, skipping: ${relPath}`);
-      return null;
+    if (existing) {
+      // Swap the binary in place (keeps id + relations). If replace isn't
+      // available / fails, keep the existing file rather than break the seed.
+      try {
+        await strapi
+          .plugin('upload')
+          .service('upload')
+          .replace(existing.id, { data: {}, file: fileArg });
+        strapi.log.info(`[seed-media] replaced ${fileName} (id ${existing.id})`);
+      } catch (e: any) {
+        strapi.log.warn(`[seed-media] replace failed for ${fileName}, keeping existing: ${e?.message}`);
+      }
+      return existing.id;
     }
-    const stats = fs.statSync(abs);
+
     const uploaded = await strapi
       .plugin('upload')
       .service('upload')
       .upload({
         data: { fileInfo: { name: fileName, alternativeText: alt || fileName, caption: '' } },
-        files: {
-          filepath: abs,
-          originalFilename: fileName,
-          mimetype: mimeFor(fileName),
-          size: stats.size,
-        },
+        files: fileArg,
       });
     const file = Array.isArray(uploaded) ? uploaded[0] : uploaded;
     if (file?.id) {
