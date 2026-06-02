@@ -78,6 +78,38 @@ function toBars(map: Record<string, number>, n = 8) {
     .map(([name, value]) => ({ name: name || '(none)', value }));
 }
 
+// Country codes are stored as ISO-2 (e.g. "US", "KE"). Turn each into a
+// flag emoji + full English name for the "Visitors by country" chart.
+// Intl.DisplayNames supplies the names (no hardcoded table); the flag is
+// built from the two regional-indicator symbols for the code.
+const regionNames =
+  typeof Intl !== 'undefined' && 'DisplayNames' in Intl
+    ? new Intl.DisplayNames(['en'], { type: 'region' })
+    : null;
+
+function codeToFlag(cc: string): string {
+  return String.fromCodePoint(...[...cc].map((ch) => 127397 + ch.charCodeAt(0)));
+}
+
+function countryLabel(code: string): string {
+  const cc = (code || '').trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(cc)) return code || '(unknown)';
+  let name = cc;
+  try {
+    name = regionNames?.of(cc) || cc;
+  } catch {
+    /* keep the code as a fallback */
+  }
+  return `${codeToFlag(cc)} ${name}`;
+}
+
+function toCountryBars(map: Record<string, number>, n = 8) {
+  return Object.entries(map)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+    .map(([code, value]) => ({ name: countryLabel(code), value }));
+}
+
 const cardStyle: React.CSSProperties = {
   background: '#fff',
   border: '1px solid rgba(10,10,10,0.1)',
@@ -111,7 +143,7 @@ const Empty = ({ msg }: { msg: string }) => (
   </div>
 );
 
-function HBar({ title, data }: { title: string; data: { name: string; value: number }[] }) {
+function HBar({ title, data, yWidth = 150 }: { title: string; data: { name: string; value: number }[]; yWidth?: number }) {
   return (
     <Panel title={title} height={Math.max(160, data.length * 34 + 20)}>
       {data.length ? (
@@ -119,7 +151,7 @@ function HBar({ title, data }: { title: string; data: { name: string; value: num
           <BarChart data={data} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(10,10,10,0.07)" horizontal={false} />
             <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-            <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={150} />
+            <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={yWidth} />
             <Tooltip />
             <Bar dataKey="value" fill={YELLOW} radius={[0, 4, 4, 0]} />
           </BarChart>
@@ -350,7 +382,7 @@ export default function AnalyticsPage() {
 
           <div style={grid2}>
             <HBar title="Top pages (pageviews)" data={toBars(d.byPath)} />
-            <HBar title="Visitors by country (sessions)" data={toBars(d.byCountry)} />
+            <HBar title="Visitors by country (sessions)" data={toCountryBars(d.byCountry)} yWidth={180} />
           </div>
           <div style={grid2}>
             <HBar title="Sections viewed" data={toBars(d.bySection)} />

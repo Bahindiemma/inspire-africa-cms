@@ -14,6 +14,16 @@
  * `.tmp/data.db` (dev) or truncate the relevant tables (prod).
  */
 import type { Core } from '@strapi/strapi';
+import { LEGAL_BODIES } from './legal-bodies';
+import { seedAllMedia, attachSectionPhotos } from './seed-media';
+
+// Blog slug → bundled hero image (photoUrl form). Keeps blog hero images
+// in the Media Library too, matching the frontend's per-slug fallback.
+const BLOG_HERO_BY_SLUG: Record<string, string> = {
+  'the-real-cost-of-free-migration': '/images/blog/gulf-corridor-rebar.jpg',
+  'uk-care-visa-2026-what-african-workers-need-to-know': '/images/blog/pa-uk-visa.jpg',
+  'from-remittance-to-reinvestment-earn-learn-return': '/images/blog/ilo-minimum-wages-africa.jpg',
+};
 
 export async function seedContent(strapi: Core.Strapi) {
   const force = process.env.RESEED_CONTENT === 'true';
@@ -25,6 +35,11 @@ export async function seedContent(strapi: Core.Strapi) {
   }
 
   strapi.log.info('[seed-content] starting…');
+
+  // ---------- 0. Media Library — upload every bundled image up front ----------
+  // So all visitor-facing images live in the CMS; pages/blog link to them
+  // below. `mediaByUrl` maps the seed's `/images/...` paths → media id.
+  const mediaByUrl = await seedAllMedia(strapi);
 
   // ---------- helper: upsert a single-type document ----------
   // strapi.documents.update only patches an existing doc — for single
@@ -246,6 +261,7 @@ export async function seedContent(strapi: Core.Strapi) {
     const tagDocs = await Promise.all(
       p.tags.map(async (name) => await strapi.documents('api::tag.tag').findFirst({ filters: { slug: tagSlugs[name] } as any }))
     );
+    const heroId = mediaByUrl.get(BLOG_HERO_BY_SLUG[p.slug]);
     const data: any = {
       title: p.title,
       slug: p.slug,
@@ -256,6 +272,7 @@ export async function seedContent(strapi: Core.Strapi) {
       body: p.body,
       tags: tagDocs.filter(Boolean).map((t: any) => t.documentId),
       author: editorialAuthor?.documentId,
+      ...(heroId ? { heroImage: heroId } : {}),
     };
     if (existing) {
       await strapi.documents('api::blog-post.blog-post').update({ documentId: existing.documentId, data, status: 'published' } as any).catch((e) => strapi.log.warn(`[seed-content] blog ${p.slug}: ${e.message}`));
@@ -332,7 +349,14 @@ export async function seedContent(strapi: Core.Strapi) {
   ];
   for (const d of legals) {
     const existing = await strapi.documents('api::legal-document.legal-document').findFirst({ filters: { slug: d.slug } as any });
-    const data = { ...d, controllerName: 'Inspire Africa Platform Ltd' };
+    const fullBody = LEGAL_BODIES[d.slug];
+    const data = {
+      ...d,
+      controllerName: 'Inspire Africa Platform Ltd',
+      // Full CMS-authored body + sticky-TOC anchors, migrated verbatim
+      // from the Next.js legal pages so editors maintain them in admin.
+      ...(fullBody ? { body: fullBody.body, tocAnchors: fullBody.tocAnchors } : {}),
+    };
     if (existing) {
       await strapi.documents('api::legal-document.legal-document').update({ documentId: existing.documentId, data: data as any, status: 'published' } as any).catch(() => {});
     } else {
@@ -354,6 +378,8 @@ export async function seedContent(strapi: Core.Strapi) {
       eyebrow: 'Labour mobility infrastructure',
       headingHtml: '<span class="small-italic">Work abroad.</span>Earn more.<br/><span class="accent">Change<br/>your future.</span>',
       lede: 'INSPIRE AFRICA connects skilled African workers, employers and governments through governed migration pathways, predictive screening and migration finance.',
+      photoUrl: '/images/home-hero-healthcare.jpg',
+      photoAlt: 'African doctor walking a patient through their diagnosis in a hospital corridor',
       photoCaptionTitle: 'Ready Now',
       photoCaptionSub: '3-tier readiness pipeline',
       ctas: [
@@ -368,20 +394,31 @@ export async function seedContent(strapi: Core.Strapi) {
     },
     {
       __component: 'sections.audiences',
-      eyebrow: 'Who is INSPIRE for',
+      eyebrow: 'Built for workers, employers and governments',
       headingHtml: 'Three audiences.<br/><span class="yellow">One platform.</span>',
       lede: 'Workers are our primary audience. Employers and governments engage through trusted pathways.',
       cards: [
-        { number: '01', title: 'Access global work', body: 'Fair, structured pathways with preparation, support and salary-linked finance.', tag: 'For Workers', ctaLabel: 'Start Your Journey', ctaHref: '/workers', isPrimary: true },
-        { number: '02', title: 'Hire ethically', body: 'Pre-screened, job-ready African talent deployed compliantly.', tag: 'For Employers', ctaLabel: 'Talk to Us', ctaHref: '/employers', isPrimary: false },
-        { number: '03', title: 'Govern mobility', body: 'Build transparent, scalable migration pathways aligned with national strategy.', tag: 'Governments', ctaLabel: 'Explore a Partnership', ctaHref: '/governments', isPrimary: false },
+        { number: '01', title: 'Access global work', body: 'Fair, structured pathways with preparation, support and salary-linked finance — so you can work abroad and bring the gains home.', tag: 'For Workers', ctaLabel: 'Start Your Journey', ctaHref: '/workers', isPrimary: true, photoUrl: '/images/home-card-workers-construction.jpg', photoAlt: 'African construction worker focused on hammering nails into a wooden frame' },
+        { number: '02', title: 'Hire with confidence', body: 'Pre-qualified African talent. Ethical recruitment with faster mobilisation.', tag: 'For Employers', ctaLabel: 'Talk to Us', ctaHref: '/employers', isPrimary: false, photoUrl: '/images/home-card-employers-hospitality.jpg', photoAlt: 'Three Ugandan chefs cooking over an open flame in a busy hospitality kitchen' },
+        { number: '03', title: 'Build mobility systems', body: 'Structured, ethical labour pathways aligned with national strategy and long-term capability.', tag: 'For Governments', ctaLabel: 'Explore a Partnership', ctaHref: '/governments', isPrimary: false, photoUrl: '/images/home-card-governments-agriculture.jpg', photoAlt: 'Wide view of Nigerian farmers working together across a rice field — workforce at scale' },
+      ],
+    },
+    {
+      __component: 'sections.numbers',
+      eyebrow: 'Proof, not promises',
+      headingHtml: 'Early signal. <span class="yellow">Structural scale.</span>',
+      stats: [
+        { value: '2/3', label: 'Reduction in cost-per-hire', order: 1 },
+        { value: '1/3', label: 'Faster hiring timelines', order: 2 },
+        { value: '0', label: 'Defaults on salary-linked plans', order: 3 },
+        { value: '7', label: 'Destination corridors', order: 4 },
       ],
     },
     {
       __component: 'sections.insights-strip',
       eyebrow: 'From the field',
       headingHtml: 'Insights from the<br/><span class="yellow">corridor.</span>',
-      lede: 'Reporting and analysis from inside the labour-mobility platform — policy shifts, market signals and the structural reasons they matter.',
+      lede: 'Analysis and insight from inside the labour mobility system within and without Africa. Policy shifts, market signals and the structural forces shaping workforce migration.',
       limit: 3,
       ctaLabel: 'Read the piece',
       ctaHref: '/blog',
@@ -390,7 +427,7 @@ export async function seedContent(strapi: Core.Strapi) {
       __component: 'sections.final-cta',
       eyebrow: 'Your move',
       headingHtml: '<span class="italic-accent">If you\'re ready —</span>Join the<br/>community.',
-      lede: 'Free membership. Direct route into the INSPIRE AFRICA ecosystem.',
+      lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
       primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true },
       secondaryLinks: [
         { label: 'For Employers', href: '/employers', order: 1 },
@@ -404,7 +441,7 @@ export async function seedContent(strapi: Core.Strapi) {
   const pageData = {
     title: 'Home', slug: 'home',
     seo: { metaTitle: 'INSPIRE AFRICA — Labour mobility infrastructure', metaDescription: 'INSPIRE AFRICA connects skilled African workers, employers and governments through governed migration pathways.' },
-    sections: homeSections,
+    sections: attachSectionPhotos(homeSections, mediaByUrl),
   };
   if (existingHome) {
     await strapi.documents('api::page.page').update({ documentId: existingHome.documentId, data: pageData as any, status: 'published' } as any).catch((e) => strapi.log.warn(`[seed-content] home update: ${e.message}`));
@@ -414,11 +451,17 @@ export async function seedContent(strapi: Core.Strapi) {
   }
 
   // ---------- 11. Inner marketing pages (Dynamic Zones) ----------
-  await upsertPage(strapi, 'workers', WORKERS_PAGE);
-  await upsertPage(strapi, 'employers', EMPLOYERS_PAGE);
-  await upsertPage(strapi, 'governments', GOVERNMENTS_PAGE);
-  await upsertPage(strapi, 'approach', APPROACH_PAGE);
-  await upsertPage(strapi, 'join', JOIN_PAGE);
+  // Attach Media Library photos to each page's hero/card sections before upsert.
+  const withMedia = (pg: { title: string; seo: any; sections: any[] }) => ({
+    ...pg,
+    sections: attachSectionPhotos(pg.sections, mediaByUrl),
+  });
+  await upsertPage(strapi, 'workers', withMedia(WORKERS_PAGE));
+  await upsertPage(strapi, 'employers', withMedia(EMPLOYERS_PAGE));
+  await upsertPage(strapi, 'governments', withMedia(GOVERNMENTS_PAGE));
+  await upsertPage(strapi, 'approach', withMedia(APPROACH_PAGE));
+  await upsertPage(strapi, 'join', withMedia(JOIN_PAGE));
+  await upsertPage(strapi, 'contact', withMedia(CONTACT_PAGE));
 
   strapi.log.info('[seed-content] DONE.');
 }
@@ -441,6 +484,36 @@ async function upsertPage(strapi: any, slug: string, data: { title: string; seo:
 // Each captures the exact section sequence currently hard-coded in
 // app/<route>/page.tsx so the migrated page renders identically.
 // ============================================================
+
+// Contact page — only the editable PROSE lives here (hero + the form
+// intro). The bespoke two-column layout and the office/contact aside are
+// rendered from the CMS site-settings by app/contact/page.tsx.
+const CONTACT_PAGE = {
+  title: 'Contact',
+  seo: {
+    metaTitle: 'Contact — INSPIRE AFRICA',
+    metaDescription:
+      'Get in touch. UK office and Africa regional office. Enquiries from workers, employers, governments and partners.',
+  },
+  sections: [
+    {
+      __component: 'sections.hero',
+      watermark: 'CONTACT',
+      eyebrow: 'Get in touch',
+      headingHtml: '<span class="small-italic">Let\'s talk —</span><span class="accent">on your terms.</span>',
+      lede: 'Enquiries from workers, employers, governments and partners. We respond within two working days.',
+      centered: true,
+      className: 'hero--compact',
+    },
+    {
+      __component: 'sections.form-block',
+      formKey: 'contact',
+      eyebrow: 'Send a message',
+      headingHtml: 'How can we help?',
+      lede: "Tell us who you are and what you're looking for. We'll route your message to the right person.",
+    },
+  ],
+};
 
 const WORKERS_PAGE = {
   title: 'For Workers',
