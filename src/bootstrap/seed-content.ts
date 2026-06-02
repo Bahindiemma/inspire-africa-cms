@@ -14,6 +14,7 @@
  * `.tmp/data.db` (dev) or truncate the relevant tables (prod).
  */
 import type { Core } from '@strapi/strapi';
+import { LEGAL_BODIES } from './legal-bodies';
 
 export async function seedContent(strapi: Core.Strapi) {
   const force = process.env.RESEED_CONTENT === 'true';
@@ -332,7 +333,14 @@ export async function seedContent(strapi: Core.Strapi) {
   ];
   for (const d of legals) {
     const existing = await strapi.documents('api::legal-document.legal-document').findFirst({ filters: { slug: d.slug } as any });
-    const data = { ...d, controllerName: 'Inspire Africa Platform Ltd' };
+    const fullBody = LEGAL_BODIES[d.slug];
+    const data = {
+      ...d,
+      controllerName: 'Inspire Africa Platform Ltd',
+      // Full CMS-authored body + sticky-TOC anchors, migrated verbatim
+      // from the Next.js legal pages so editors maintain them in admin.
+      ...(fullBody ? { body: fullBody.body, tocAnchors: fullBody.tocAnchors } : {}),
+    };
     if (existing) {
       await strapi.documents('api::legal-document.legal-document').update({ documentId: existing.documentId, data: data as any, status: 'published' } as any).catch(() => {});
     } else {
@@ -432,6 +440,7 @@ export async function seedContent(strapi: Core.Strapi) {
   await upsertPage(strapi, 'governments', GOVERNMENTS_PAGE);
   await upsertPage(strapi, 'approach', APPROACH_PAGE);
   await upsertPage(strapi, 'join', JOIN_PAGE);
+  await upsertPage(strapi, 'contact', CONTACT_PAGE);
 
   strapi.log.info('[seed-content] DONE.');
 }
@@ -454,6 +463,36 @@ async function upsertPage(strapi: any, slug: string, data: { title: string; seo:
 // Each captures the exact section sequence currently hard-coded in
 // app/<route>/page.tsx so the migrated page renders identically.
 // ============================================================
+
+// Contact page — only the editable PROSE lives here (hero + the form
+// intro). The bespoke two-column layout and the office/contact aside are
+// rendered from the CMS site-settings by app/contact/page.tsx.
+const CONTACT_PAGE = {
+  title: 'Contact',
+  seo: {
+    metaTitle: 'Contact — INSPIRE AFRICA',
+    metaDescription:
+      'Get in touch. UK office and Africa regional office. Enquiries from workers, employers, governments and partners.',
+  },
+  sections: [
+    {
+      __component: 'sections.hero',
+      watermark: 'CONTACT',
+      eyebrow: 'Get in touch',
+      headingHtml: '<span class="small-italic">Let\'s talk —</span><span class="accent">on your terms.</span>',
+      lede: 'Enquiries from workers, employers, governments and partners. We respond within two working days.',
+      centered: true,
+      className: 'hero--compact',
+    },
+    {
+      __component: 'sections.form-block',
+      formKey: 'contact',
+      eyebrow: 'Send a message',
+      headingHtml: 'How can we help?',
+      lede: "Tell us who you are and what you're looking for. We'll route your message to the right person.",
+    },
+  ],
+};
 
 const WORKERS_PAGE = {
   title: 'For Workers',
