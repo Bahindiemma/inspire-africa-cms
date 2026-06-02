@@ -15,6 +15,15 @@
  */
 import type { Core } from '@strapi/strapi';
 import { LEGAL_BODIES } from './legal-bodies';
+import { seedAllMedia, attachSectionPhotos } from './seed-media';
+
+// Blog slug → bundled hero image (photoUrl form). Keeps blog hero images
+// in the Media Library too, matching the frontend's per-slug fallback.
+const BLOG_HERO_BY_SLUG: Record<string, string> = {
+  'the-real-cost-of-free-migration': '/images/blog/gulf-corridor-rebar.jpg',
+  'uk-care-visa-2026-what-african-workers-need-to-know': '/images/blog/pa-uk-visa.jpg',
+  'from-remittance-to-reinvestment-earn-learn-return': '/images/blog/ilo-minimum-wages-africa.jpg',
+};
 
 export async function seedContent(strapi: Core.Strapi) {
   const force = process.env.RESEED_CONTENT === 'true';
@@ -26,6 +35,11 @@ export async function seedContent(strapi: Core.Strapi) {
   }
 
   strapi.log.info('[seed-content] starting…');
+
+  // ---------- 0. Media Library — upload every bundled image up front ----------
+  // So all visitor-facing images live in the CMS; pages/blog link to them
+  // below. `mediaByUrl` maps the seed's `/images/...` paths → media id.
+  const mediaByUrl = await seedAllMedia(strapi);
 
   // ---------- helper: upsert a single-type document ----------
   // strapi.documents.update only patches an existing doc — for single
@@ -247,6 +261,7 @@ export async function seedContent(strapi: Core.Strapi) {
     const tagDocs = await Promise.all(
       p.tags.map(async (name) => await strapi.documents('api::tag.tag').findFirst({ filters: { slug: tagSlugs[name] } as any }))
     );
+    const heroId = mediaByUrl.get(BLOG_HERO_BY_SLUG[p.slug]);
     const data: any = {
       title: p.title,
       slug: p.slug,
@@ -257,6 +272,7 @@ export async function seedContent(strapi: Core.Strapi) {
       body: p.body,
       tags: tagDocs.filter(Boolean).map((t: any) => t.documentId),
       author: editorialAuthor?.documentId,
+      ...(heroId ? { heroImage: heroId } : {}),
     };
     if (existing) {
       await strapi.documents('api::blog-post.blog-post').update({ documentId: existing.documentId, data, status: 'published' } as any).catch((e) => strapi.log.warn(`[seed-content] blog ${p.slug}: ${e.message}`));
@@ -425,7 +441,7 @@ export async function seedContent(strapi: Core.Strapi) {
   const pageData = {
     title: 'Home', slug: 'home',
     seo: { metaTitle: 'INSPIRE AFRICA — Labour mobility infrastructure', metaDescription: 'INSPIRE AFRICA connects skilled African workers, employers and governments through governed migration pathways.' },
-    sections: homeSections,
+    sections: attachSectionPhotos(homeSections, mediaByUrl),
   };
   if (existingHome) {
     await strapi.documents('api::page.page').update({ documentId: existingHome.documentId, data: pageData as any, status: 'published' } as any).catch((e) => strapi.log.warn(`[seed-content] home update: ${e.message}`));
@@ -435,12 +451,17 @@ export async function seedContent(strapi: Core.Strapi) {
   }
 
   // ---------- 11. Inner marketing pages (Dynamic Zones) ----------
-  await upsertPage(strapi, 'workers', WORKERS_PAGE);
-  await upsertPage(strapi, 'employers', EMPLOYERS_PAGE);
-  await upsertPage(strapi, 'governments', GOVERNMENTS_PAGE);
-  await upsertPage(strapi, 'approach', APPROACH_PAGE);
-  await upsertPage(strapi, 'join', JOIN_PAGE);
-  await upsertPage(strapi, 'contact', CONTACT_PAGE);
+  // Attach Media Library photos to each page's hero/card sections before upsert.
+  const withMedia = (pg: { title: string; seo: any; sections: any[] }) => ({
+    ...pg,
+    sections: attachSectionPhotos(pg.sections, mediaByUrl),
+  });
+  await upsertPage(strapi, 'workers', withMedia(WORKERS_PAGE));
+  await upsertPage(strapi, 'employers', withMedia(EMPLOYERS_PAGE));
+  await upsertPage(strapi, 'governments', withMedia(GOVERNMENTS_PAGE));
+  await upsertPage(strapi, 'approach', withMedia(APPROACH_PAGE));
+  await upsertPage(strapi, 'join', withMedia(JOIN_PAGE));
+  await upsertPage(strapi, 'contact', withMedia(CONTACT_PAGE));
 
   strapi.log.info('[seed-content] DONE.');
 }
