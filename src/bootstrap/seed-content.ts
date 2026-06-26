@@ -749,7 +749,7 @@ const APPROACH_PAGE = {
       __component: 'sections.hero',
       watermark: 'APPROACH',
       eyebrow: 'Our approach',
-      headingHtml: '<span class="small-italic">Not recruitment.</span><span class="accent">Infrastructure.</span>',
+      headingHtml: '<span class="small-italic">Not recruitment.</span><span class="accent">Infrastructure</span>',
       lede: 'A structured system for global labour mobility — built around four principles: ethical, circular, structured, worker-centred.',
       photoUrl: '/images/approach-hero-tailor.jpg',
       photoAlt: 'African tailor focused on a stitching task — skilled, hands-on work being built into a career',
