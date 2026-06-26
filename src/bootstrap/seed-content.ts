@@ -777,10 +777,10 @@ const APPROACH_PAGE = {
       __component: 'sections.process-list',
       eyebrow: 'A coordinated journey',
       headingHtml: 'From <span class="yellow">readiness</span> to return.',
-      lede: 'While each pathway is tailored by role, sector and country, every journey follows the same seven-stage logic.',
+      lede: 'Each pathway is tailored by role, sector and country — a set of stepping stones that carry a worker from where they are to where they want to be.',
       steps: [
-        { title: 'Prepare', body: 'Candidates are guided through a structured readiness process designed to ensure they are equipped for international work environments.' },
         { title: 'Assess', body: 'Capability, behaviour and suitability evaluated through a consistent, multi-dimensional framework.' },
+        { title: 'Prepare', body: 'Candidates are guided through a structured readiness process designed to ensure they are equipped for international work environments.' },
         { title: 'Match', body: 'Candidates introduced to relevant employers through a controlled and transparent selection process.' },
         { title: 'Enable', body: 'Where required, access to structured migration cost solutions allows candidates to proceed without prohibitive up-front barriers.' },
         { title: 'Deploy', body: 'Documentation, compliance and relocation coordinated to ensure a smooth transition into employment.' },
