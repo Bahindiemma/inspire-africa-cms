@@ -54,6 +54,12 @@ export async function seedContent(strapi: Core.Strapi) {
   }
 
   // ---------- 1. Site Settings (single type) ----------
+  // Brand/meta imagery (logo, favicon, default OG share image) is served
+  // from the CMS too — the Next.js app no longer ships any static copies.
+  // `defaultOgImage` reuses the seeded home-hero photo (1200×630-friendly).
+  const logoId = mediaByUrl.get('/images/inspire-africa-logo.png');
+  const faviconId = mediaByUrl.get('/images/inspire-africa-favicon.png');
+  const ogImageId = mediaByUrl.get('/images/home-hero-healthcare.jpg');
   await upsertSingle('api::site-setting.site-setting', {
       name: 'INSPIRE AFRICA',
       legalName: 'Inspire Africa Platform Ltd',
@@ -91,6 +97,9 @@ export async function seedContent(strapi: Core.Strapi) {
         { platform: 'whatsapp', label: 'WhatsApp Business', url: 'https://wa.me/256750329751', handle: '+256 750 329 751', iconKey: 'whatsapp', order: 7 },
       ],
       communityBaseUrl: 'https://inspire-africa.mn.co/spaces/20105635',
+      ...(logoId ? { logo: logoId } : {}),
+      ...(faviconId ? { favicon: faviconId } : {}),
+      ...(ogImageId ? { defaultOgImage: ogImageId } : {}),
   }).catch((e: any) => strapi.log.warn('[seed-content] site-setting: ' + e.message));
 
   // ---------- 2. Design Tokens (single type) ----------
@@ -462,6 +471,35 @@ export async function seedContent(strapi: Core.Strapi) {
   await upsertPage(strapi, 'approach', withMedia(APPROACH_PAGE));
   await upsertPage(strapi, 'join', withMedia(JOIN_PAGE));
   await upsertPage(strapi, 'contact', withMedia(CONTACT_PAGE));
+
+  // ---------- 12. Fail-loud media coverage guard ----------
+  // The Next.js app no longer ships ANY static image fallbacks, so every
+  // placement below MUST resolve to a Media Library file. If any is
+  // missing the live site would render a blank — so we log it loudly here
+  // (in the reseed output) rather than letting it slip to production.
+  const EXPECTED_MEDIA: Array<{ key: string; placement: string }> = [
+    { key: '/images/home-hero-healthcare.jpg', placement: 'home/hero (+ defaultOgImage)' },
+    { key: '/images/home-card-workers-construction.jpg', placement: 'home/card:workers' },
+    { key: '/images/home-card-employers-hospitality.jpg', placement: 'home/card:employers' },
+    { key: '/images/home-card-governments-agriculture.jpg', placement: 'home/card:governments' },
+    { key: '/images/workers-hero-nurse.jpg', placement: 'workers/hero' },
+    { key: '/images/employers-hero-kitchen.jpg', placement: 'employers/hero' },
+    { key: '/images/governments-hero-market.jpg', placement: 'governments/hero' },
+    { key: '/images/approach-hero-tailor.jpg', placement: 'approach/hero' },
+    { key: '/images/join-hero-construction-team.jpg', placement: 'join/hero' },
+    ...Object.entries(BLOG_HERO_BY_SLUG).map(([slug, key]) => ({ key, placement: `blog/${slug}` })),
+    { key: '/images/inspire-africa-logo.png', placement: 'site-setting/logo' },
+    { key: '/images/inspire-africa-favicon.png', placement: 'site-setting/favicon' },
+  ];
+  let covered = 0;
+  for (const { key, placement } of EXPECTED_MEDIA) {
+    if (mediaByUrl.has(key)) covered += 1;
+    else strapi.log.error(`[seed-media] MISSING media for ${placement} — expected ${key}. The live site will render a BLANK here.`);
+  }
+  const total = EXPECTED_MEDIA.length;
+  const summary = `[seed-media] ${covered}/${total} placements have a Media Library asset`;
+  if (covered === total) strapi.log.info(summary);
+  else strapi.log.error(`${summary} — ${total - covered} MISSING (see errors above). Fix before deploying the website fallback removal.`);
 
   strapi.log.info('[seed-content] DONE.');
 }
