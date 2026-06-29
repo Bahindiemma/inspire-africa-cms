@@ -127,8 +127,9 @@ export async function seedContent(strapi: Core.Strapi) {
       { label: 'Workers', href: '/workers', order: 2, isCta: false, isExternal: false },
       { label: 'Employers', href: '/employers', order: 3, isCta: false, isExternal: false },
       { label: 'Governments', href: '/governments', order: 4, isCta: false, isExternal: false },
-      { label: 'Join the Community', href: '/join', order: 5, isCta: true, isExternal: false },
-      { label: 'Contact', href: '/contact', order: 6, isCta: false, isExternal: false },
+      { label: 'Blogs', href: '/blog', order: 5, isCta: false, isExternal: false },
+      { label: 'Join the Community', href: '/join', order: 6, isCta: true, isExternal: false },
+      { label: 'Contact', href: '/contact', order: 7, isCta: false, isExternal: false },
     ],
     footerColumns: [
       {
