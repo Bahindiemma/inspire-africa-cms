@@ -956,6 +956,146 @@ export interface ApiCandidateCandidate extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCommunitySignupCommunitySignup
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'community_signups';
+  info: {
+    description: "Intent-to-join records for the Mighty Networks community. One row per click on a 'Join the Community' CTA (status Clicked), upgraded to Submitted when the visitor gives us their details, then RedirectedToMN on handoff. Identity fields are `private` (never returned by the content API). The raw IP is never stored \u2014 only a salted hash, mirroring analytics-session.";
+    displayName: 'Community Signup';
+    pluralName: 'community-signups';
+    singularName: 'community-signup';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-api': {
+      visible: false;
+    };
+    'content-manager': {
+      visible: true;
+    };
+  };
+  attributes: {
+    attempts: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<1>;
+    botScore: Schema.Attribute.Float & Schema.Attribute.DefaultTo<0>;
+    clickedAt: Schema.Attribute.DateTime;
+    clickId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 64;
+      }>;
+    confirmedAt: Schema.Attribute.DateTime;
+    consentMarketing: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    consentRecordedAt: Schema.Attribute.DateTime;
+    consentTerms: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    country: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    deviceType: Schema.Attribute.Enumeration<
+      ['mobile', 'tablet', 'desktop', 'bot', 'unknown']
+    > &
+      Schema.Attribute.DefaultTo<'unknown'>;
+    email: Schema.Attribute.Email &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 254;
+      }>;
+    firstName: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    ipHash: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 64;
+      }>;
+    landingPath: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 512;
+      }>;
+    lastName: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::community-signup.community-signup'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    passwordHash: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    phone: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 32;
+      }>;
+    publishedAt: Schema.Attribute.DateTime;
+    redirectedAt: Schema.Attribute.DateTime;
+    referrerHost: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    source: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+    status: Schema.Attribute.Enumeration<
+      [
+        'Clicked',
+        'Submitted',
+        'RedirectedToMN',
+        'MemberConfirmed',
+        'Duplicate',
+        'Spam',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Clicked'>;
+    submittedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userAgent: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 512;
+      }>;
+    utmCampaign: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+    utmMedium: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+    utmSource: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 128;
+      }>;
+  };
+}
+
 export interface ApiCorridorCorridor extends Struct.CollectionTypeSchema {
   collectionName: 'corridors';
   info: {
@@ -2144,6 +2284,7 @@ declare module '@strapi/strapi' {
       'api::author.author': ApiAuthorAuthor;
       'api::blog-post.blog-post': ApiBlogPostBlogPost;
       'api::candidate.candidate': ApiCandidateCandidate;
+      'api::community-signup.community-signup': ApiCommunitySignupCommunitySignup;
       'api::corridor.corridor': ApiCorridorCorridor;
       'api::design-token.design-token': ApiDesignTokenDesignToken;
       'api::form-definition.form-definition': ApiFormDefinitionFormDefinition;

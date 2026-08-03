@@ -53,6 +53,9 @@ const EDITABLE_BY_EDITOR = [
 const ADMIN_ONLY = [
   'api::candidate.candidate',
   'api::form-submission.form-submission',
+  // Community signups hold PII (name / email / phone). Admin only — the
+  // ingest routes are reached via the shared-secret policy, not a role.
+  'api::community-signup.community-signup',
   'api::site-setting.site-setting',
   'api::design-token.design-token',
   'api::navigation.navigation',

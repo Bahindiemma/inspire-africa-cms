@@ -1,0 +1,71 @@
+{
+  "kind": "collectionType",
+  "collectionName": "community_signups",
+  "info": {
+    "singularName": "community-signup",
+    "pluralName": "community-signups",
+    "displayName": "Community Signup",
+    "description": "Intent-to-join records for the Mighty Networks community. One row per click on a 'Join the Community' CTA (status Clicked), upgraded to Submitted when the visitor gives us their details, then RedirectedToMN on handoff. Identity fields are `private` (never returned by the content API). The raw IP is never stored — only a salted hash, mirroring analytics-session."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-api": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "clickId": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "maxLength": 64
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "Clicked",
+        "Submitted",
+        "RedirectedToMN",
+        "MemberConfirmed",
+        "Duplicate",
+        "Spam"
+      ],
+      "default": "Clicked",
+      "required": true
+    },
+    "email": { "type": "email", "private": true, "maxLength": 254 },
+    "firstName": { "type": "string", "private": true, "maxLength": 80 },
+    "lastName": { "type": "string", "private": true, "maxLength": 80 },
+    "phone": { "type": "string", "private": true, "maxLength": 32 },
+    "passwordHash": { "type": "string", "private": true, "maxLength": 255 },
+    "country": { "type": "string", "maxLength": 80 },
+    "consentTerms": { "type": "boolean", "default": false },
+    "consentMarketing": { "type": "boolean", "default": false },
+    "consentRecordedAt": { "type": "datetime" },
+    "source": { "type": "string", "maxLength": 128 },
+    "utmSource": { "type": "string", "maxLength": 128 },
+    "utmMedium": { "type": "string", "maxLength": 128 },
+    "utmCampaign": { "type": "string", "maxLength": 128 },
+    "referrerHost": { "type": "string", "maxLength": 255 },
+    "landingPath": { "type": "string", "maxLength": 512 },
+    "attempts": { "type": "integer", "default": 1, "min": 0 },
+    "clickedAt": { "type": "datetime" },
+    "submittedAt": { "type": "datetime" },
+    "redirectedAt": { "type": "datetime" },
+    "confirmedAt": { "type": "datetime" },
+    "ipHash": { "type": "string", "private": true, "maxLength": 64 },
+    "userAgent": { "type": "string", "private": true, "maxLength": 512 },
+    "deviceType": {
+      "type": "enumeration",
+      "enum": ["mobile", "tablet", "desktop", "bot", "unknown"],
+      "default": "unknown"
+    },
+    "botScore": { "type": "float", "default": 0 },
+    "notes": { "type": "text" }
+  }
+}

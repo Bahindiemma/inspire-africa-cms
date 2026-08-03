@@ -5,6 +5,9 @@
  *      instead of scanning raw events.
  *   2. Purge raw events + sessions older than ANALYTICS_RETENTION_MONTHS
  *      (default 14). Rollups are kept for long-term trend reporting.
+ *   3. Purge aged community-signup rows on two separate clocks — see
+ *      purgeOldCommunitySignups() for why measurement rows and lead rows
+ *      must not share a retention window.
  *
  * Wired from config/server.ts `cron.tasks`.
  */
@@ -13,6 +16,7 @@ import type { Core } from '@strapi/strapi';
 const SESSION_UID = 'api::analytics-session.analytics-session';
 const EVENT_UID = 'api::analytics-event.analytics-event';
 const ROLLUP_UID = 'api::analytics-daily-rollup.analytics-daily-rollup';
+const SIGNUP_UID = 'api::community-signup.community-signup';
 
 const MAX_ROWS = 200000; // safety cap per query for a single day
 
@@ -20,6 +24,7 @@ export async function runAnalyticsMaintenance(strapi: Core.Strapi) {
   try {
     await buildRollupForDate(strapi, dayOffsetUTC(-1)); // yesterday
     await purgeOldData(strapi);
+    await purgeOldCommunitySignups(strapi);
     strapi.log.info('[analytics-cron] maintenance complete.');
   } catch (err) {
     strapi.log.error(
@@ -134,4 +139,58 @@ async function purgeOldData(strapi: Core.Strapi) {
       (delEvents as any)?.count ?? 0
     } events, ${(delSessions as any)?.count ?? 0} sessions.`
   );
+}
+
+/**
+ * Community-signup retention. Two different clocks, because the rows hold
+ * two very different things:
+ *
+ *   - Clicked / Spam / Duplicate rows are measurement only (no name, no
+ *     email — just an ipHash and a source). They age out on the same
+ *     schedule as analytics.
+ *   - Submitted / RedirectedToMN / MemberConfirmed rows ARE the lead: real
+ *     names, emails and phone numbers held under legitimate interest.
+ *     They get a longer, separately-configurable window so a retention
+ *     tweak on analytics can never silently bin the CRM.
+ *
+ * Both windows are documented in the privacy policy — change one, change
+ * the other.
+ */
+async function purgeOldCommunitySignups(strapi: Core.Strapi) {
+  const monthsBack = (raw: string | undefined, fallback: number) => {
+    const n = parseInt(raw || '', 10);
+    const months = Number.isFinite(n) ? n : fallback;
+    const d = new Date();
+    d.setMonth(d.getMonth() - months);
+    return d;
+  };
+
+  const clickCutoff = monthsBack(process.env.COMMUNITY_CLICK_RETENTION_MONTHS, 14);
+  const leadCutoff = monthsBack(process.env.COMMUNITY_LEAD_RETENTION_MONTHS, 36);
+
+  try {
+    const delClicks = await strapi.db.query(SIGNUP_UID).deleteMany({
+      where: {
+        status: { $in: ['Clicked', 'Spam', 'Duplicate'] },
+        clickedAt: { $lt: clickCutoff },
+      },
+    });
+    const delLeads = await strapi.db.query(SIGNUP_UID).deleteMany({
+      where: {
+        status: { $in: ['Submitted', 'RedirectedToMN', 'MemberConfirmed'] },
+        submittedAt: { $lt: leadCutoff },
+      },
+    });
+    strapi.log.info(
+      `[analytics-cron] community-signup purge: removed ${
+        (delClicks as any)?.count ?? 0
+      } click rows (< ${clickCutoff.toISOString().slice(0, 10)}), ${
+        (delLeads as any)?.count ?? 0
+      } lead rows (< ${leadCutoff.toISOString().slice(0, 10)}).`
+    );
+  } catch (err) {
+    strapi.log.warn(
+      `[analytics-cron] community-signup purge failed: ${(err as Error).message}`
+    );
+  }
 }

@@ -140,6 +140,7 @@ export interface CardsAudienceCard extends Struct.ComponentSchema {
     number: Schema.Attribute.String & Schema.Attribute.DefaultTo<'01'>;
     photo: Schema.Attribute.Media<'images'>;
     photoAlt: Schema.Attribute.String;
+    photoUrl: Schema.Attribute.String;
     tag: Schema.Attribute.String;
     title: Schema.Attribute.String & Schema.Attribute.Required;
   };
