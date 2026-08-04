@@ -101,13 +101,24 @@ async function sendVerification(
     verifyUrl,
     siteName: 'INSPIRE AFRICA',
   });
+  // Cap the SMTP round-trip. A relay that accepts the TCP connection and then
+  // stalls would otherwise hold the HTTP request open until the caller's own
+  // timeout fires, which makes a successful signup look like a failure to the
+  // visitor. Better to give up, report it, and let them resend.
+  const SEND_TIMEOUT_MS = 12000;
+
   try {
-    await strapi.plugin('email').service('email').send({
-      to: row.email,
-      subject: mail.subject,
-      text: mail.text,
-      html: mail.html,
-    });
+    await Promise.race([
+      strapi.plugin('email').service('email').send({
+        to: row.email,
+        subject: mail.subject,
+        text: mail.text,
+        html: mail.html,
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`send timed out after ${SEND_TIMEOUT_MS}ms`)), SEND_TIMEOUT_MS)
+      ),
+    ]);
     return true;
   } catch (err) {
     strapi.log.error(
