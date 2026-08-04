@@ -16,6 +16,67 @@
  */
 const UPLOAD_CEILING_BYTES = 2 * 1024 * 1024;
 
+/**
+ * Email provider.
+ *
+ * Signup now depends on this: every registrant must open a confirmation
+ * link before reaching the community, so if mail does not leave the server
+ * NOBODY can complete signup. It is no longer a nice-to-have notification
+ * channel.
+ *
+ * Providers:
+ *   smtp      — any authenticated relay (Microsoft 365, Google Workspace,
+ *               or a transactional host). Set SMTP_HOST/PORT/USERNAME/
+ *               PASSWORD. This is what inspireafricans.com uses.
+ *   sendgrid  — API key, no SMTP.
+ *   sendmail  — local binary. DEV ONLY: on a VPS with no configured MTA it
+ *               either hangs or sends from an unauthenticated IP that
+ *               receiving domains will treat as spam.
+ *
+ * IMPORTANT: authenticated relays require the From address to match the
+ * mailbox you authenticate as (Microsoft 365 and Gmail both reject or
+ * rewrite anything else). So EMAIL_FROM_ADDRESS and SMTP_USERNAME should be
+ * the same mailbox unless you have explicitly configured send-as rights.
+ */
+function emailConfig(env: any) {
+  const provider = env('EMAIL_PROVIDER', 'sendmail');
+
+  let providerOptions: any = {};
+  let providerName = provider;
+
+  if (provider === 'sendgrid') {
+    providerOptions = { apiKey: env('SENDGRID_API_KEY') };
+  } else if (provider === 'smtp' || provider === 'nodemailer') {
+    // Strapi's package is named nodemailer; `smtp` is accepted as the more
+    // obvious alias so nobody has to remember the package name.
+    providerName = 'nodemailer';
+    providerOptions = {
+      host: env('SMTP_HOST'),
+      port: env.int('SMTP_PORT', 587),
+      // 587 uses STARTTLS (secure:false); 465 is implicit TLS (secure:true).
+      secure: env.bool('SMTP_SECURE', false),
+      auth: {
+        user: env('SMTP_USERNAME'),
+        pass: env('SMTP_PASSWORD'),
+      },
+    };
+  }
+
+  return {
+    config: {
+      provider: providerName,
+      providerOptions,
+      settings: {
+        defaultFrom: `${env('EMAIL_FROM_NAME', 'INSPIRE AFRICA')} <${env(
+          'EMAIL_FROM_ADDRESS',
+          'emmanuel@inspireafricans.com'
+        )}>`,
+        defaultReplyTo: env('EMAIL_REPLY_TO', 'info@inspireafricans.com'),
+      },
+    },
+  };
+}
+
 export default ({ env }: { env: any }) => {
   const mediaProvider = env('MEDIA_PROVIDER', 'local');
 
@@ -87,22 +148,7 @@ export default ({ env }: { env: any }) => {
   return {
     upload: uploadConfig,
 
-    email: {
-      config: {
-        provider: env('EMAIL_PROVIDER', 'sendmail'),
-        providerOptions:
-          env('EMAIL_PROVIDER') === 'sendgrid'
-            ? { apiKey: env('SENDGRID_API_KEY') }
-            : {},
-        settings: {
-          defaultFrom: `${env('EMAIL_FROM_NAME', 'INSPIRE AFRICA')} <${env(
-            'EMAIL_FROM_ADDRESS',
-            'noreply@inspireafricans.com'
-          )}>`,
-          defaultReplyTo: env('EMAIL_REPLY_TO', 'info@inspireafricans.com'),
-        },
-      },
-    },
+    email: emailConfig(env),
 
     'users-permissions': {
       config: {
