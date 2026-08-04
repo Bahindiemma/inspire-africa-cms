@@ -25,6 +25,45 @@ const BLOG_HERO_BY_SLUG: Record<string, string> = {
   'from-remittance-to-reinvestment-earn-learn-return': '/images/blog/ilo-minimum-wages-africa.jpg',
 };
 
+/**
+ * Upsert the four legal documents (privacy / cookies / terms /
+ * modern-slavery) from LEGAL_BODIES.
+ *
+ * Exported separately from seedContent() on purpose. seedContent() bails
+ * out unless RESEED_CONTENT=true, and a full reseed rewrites every page —
+ * which would clobber edits the CEO has made in the admin UI. Legal text
+ * is different: it is compliance copy that must match what the code
+ * actually does, so it needs to be updatable on its own.
+ *
+ * Run it in isolation with RESEED_LEGAL=true (see src/index.ts). Idempotent.
+ */
+export async function seedLegalDocuments(strapi: Core.Strapi) {
+  const legals = [
+    { slug: 'privacy', title: 'Privacy Policy', eyebrow: 'Legal · Data protection', headingHtml: 'Your data — <span class="accent">handled with care.</span>', lede: 'This policy explains what personal data INSPIRE AFRICA collects, why we collect it, how we use and share it, and the rights you have over it.', version: '2.1', lastUpdated: '2026-05-12' },
+    { slug: 'cookies', title: 'Cookie Policy', eyebrow: 'Legal · Cookies', headingHtml: 'How we use <span class="accent">cookies.</span>', lede: 'A plain-English explanation of the cookies and similar technologies we use on inspireafricans.com.', version: '1.4', lastUpdated: '2026-05-12' },
+    { slug: 'terms', title: 'Terms of Use', eyebrow: 'Legal · Terms', headingHtml: 'Terms of <span class="accent">use.</span>', lede: 'The terms that govern your use of the inspireafricans.com website and platform services.', version: '1.6', lastUpdated: '2026-05-12' },
+    { slug: 'modern-slavery', title: 'Modern Slavery Statement', eyebrow: 'Legal · Compliance', headingHtml: 'Modern <span class="accent">slavery statement.</span>', lede: 'INSPIRE AFRICA\'s position on modern slavery and human trafficking, and the measures we take to prevent them.', version: '1.0', lastUpdated: '2026-05-12' },
+  ];
+  for (const d of legals) {
+    const existing = await strapi.documents('api::legal-document.legal-document').findFirst({ filters: { slug: d.slug } as any });
+    const fullBody = LEGAL_BODIES[d.slug];
+    const data = {
+      ...d,
+      controllerName: 'Inspire Africa Platform Ltd',
+      // Full CMS-authored body + sticky-TOC anchors, migrated verbatim
+      // from the Next.js legal pages so editors maintain them in admin.
+      ...(fullBody ? { body: fullBody.body, tocAnchors: fullBody.tocAnchors } : {}),
+    };
+    if (existing) {
+      await strapi.documents('api::legal-document.legal-document').update({ documentId: existing.documentId, data: data as any, status: 'published' } as any).catch(() => {});
+    } else {
+      const created = await strapi.documents('api::legal-document.legal-document').create({ data: data as any } as any).catch(() => null);
+      if (created) await strapi.documents('api::legal-document.legal-document').publish({ documentId: created.documentId } as any).catch(() => {});
+    }
+  }
+  strapi.log.info(`[seed-content] ${legals.length} legal documents upserted`);
+}
+
 export async function seedContent(strapi: Core.Strapi) {
   const force = process.env.RESEED_CONTENT === 'true';
 
@@ -350,31 +389,8 @@ export async function seedContent(strapi: Core.Strapi) {
   }
   strapi.log.info(`[seed-content] ${forms.length} form definitions upserted`);
 
-  // ---------- 9. Legal Documents (4 stubs — full text editable in admin) ----------
-  const legals = [
-    { slug: 'privacy', title: 'Privacy Policy', eyebrow: 'Legal · Data protection', headingHtml: 'Your data — <span class="accent">handled with care.</span>', lede: 'This policy explains what personal data INSPIRE AFRICA collects, why we collect it, how we use and share it, and the rights you have over it.', version: '2.1', lastUpdated: '2026-05-12' },
-    { slug: 'cookies', title: 'Cookie Policy', eyebrow: 'Legal · Cookies', headingHtml: 'How we use <span class="accent">cookies.</span>', lede: 'A plain-English explanation of the cookies and similar technologies we use on inspireafricans.com.', version: '1.4', lastUpdated: '2026-05-12' },
-    { slug: 'terms', title: 'Terms of Use', eyebrow: 'Legal · Terms', headingHtml: 'Terms of <span class="accent">use.</span>', lede: 'The terms that govern your use of the inspireafricans.com website and platform services.', version: '1.6', lastUpdated: '2026-05-12' },
-    { slug: 'modern-slavery', title: 'Modern Slavery Statement', eyebrow: 'Legal · Compliance', headingHtml: 'Modern <span class="accent">slavery statement.</span>', lede: 'INSPIRE AFRICA\'s position on modern slavery and human trafficking, and the measures we take to prevent them.', version: '1.0', lastUpdated: '2026-05-12' },
-  ];
-  for (const d of legals) {
-    const existing = await strapi.documents('api::legal-document.legal-document').findFirst({ filters: { slug: d.slug } as any });
-    const fullBody = LEGAL_BODIES[d.slug];
-    const data = {
-      ...d,
-      controllerName: 'Inspire Africa Platform Ltd',
-      // Full CMS-authored body + sticky-TOC anchors, migrated verbatim
-      // from the Next.js legal pages so editors maintain them in admin.
-      ...(fullBody ? { body: fullBody.body, tocAnchors: fullBody.tocAnchors } : {}),
-    };
-    if (existing) {
-      await strapi.documents('api::legal-document.legal-document').update({ documentId: existing.documentId, data: data as any, status: 'published' } as any).catch(() => {});
-    } else {
-      const created = await strapi.documents('api::legal-document.legal-document').create({ data: data as any } as any).catch(() => null);
-      if (created) await strapi.documents('api::legal-document.legal-document').publish({ documentId: created.documentId } as any).catch(() => {});
-    }
-  }
-  strapi.log.info(`[seed-content] ${legals.length} legal documents upserted`);
+  // ---------- 9. Legal Documents ----------
+  await seedLegalDocuments(strapi);
 
   // ---------- 10. Home page (with a representative Dynamic Zone) ----------
   // We seed a working Home page with hero + corridors marquee + audiences

@@ -78,6 +78,16 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
         'Job descriptions, role requirements and placement records',
         'Compliance documentation related to ethical-recruitment standards',
       ] },
+      { __component: 'blocks.heading', level: 'h3', text: 'When you join the community' },
+      p([t('Our community is hosted on Mighty Networks. Before we hand you over, we ask for your details on our own signup page so that we — not only our community provider — can support you.')]),
+      { __component: 'blocks.list', ordered: false, items: [
+        'Your first name, last name, email address and phone number',
+        'The country you tell us you live in, where you provide it',
+        'Which page or campaign you came from, so we know what is working',
+        'A one-way, irreversible hash of your IP address and your browser&rsquo;s user-agent string, used to block automated abuse — we do not store the IP address itself',
+      ] },
+      p([t('We also record the fact that a “Join the Community” button was clicked, before any details are entered. That record contains no name, email or phone number — only the page it came from and the anonymised values above. Once you arrive at Mighty Networks they will ask you to create an account with them, governed by their own privacy policy.')]),
+
       { __component: 'blocks.heading', level: 'h3', text: 'Automatically' },
       { __component: 'blocks.list', ordered: false, items: [
         'Device and browser information, IP address, approximate location',
@@ -101,7 +111,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
       { __component: 'blocks.table', headers: ['Basis', 'When we rely on it'], rows: [
         ['<strong>Contract</strong>', 'To deliver services you have engaged us to provide — readiness, matching, deployment, finance.'],
         ['<strong>Legal obligation</strong>', 'Where required by immigration, employment, tax, anti-trafficking or financial-services law.'],
-        ['<strong>Legitimate interests</strong>', 'For platform improvement, fraud prevention and operational continuity, balanced against your rights.'],
+        ['<strong>Legitimate interests</strong>', 'For platform improvement, fraud prevention and operational continuity, balanced against your rights. This includes holding the details you give us when joining the community, and measuring how many people click through to it, so we can support members directly rather than depending solely on a third-party platform.'],
         ['<strong>Consent</strong>', 'For optional marketing, sensitive categories of data and non-essential cookies. You may withdraw consent at any time.'],
       ] },
 
@@ -109,6 +119,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
       p([t('We share personal data only with parties necessary to deliver our services — and only under contractual safeguards consistent with this policy.')]),
       { __component: 'blocks.list', ordered: false, items: [
         'Employers and prospective employers — where you have applied or been matched',
+        'Mighty Networks, Inc. — our community platform. When you continue from our signup page to the community, you create an account with them directly and their privacy policy applies to it',
         'Government, regulatory and immigration authorities — where legally required',
         'Service providers (cloud hosting, identity verification, payment, communications) bound by data-processing agreements',
         'Professional advisers — legal, audit, compliance',
@@ -125,6 +136,8 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
         'Active candidate and placement records — for the duration of the relationship and up to seven years thereafter',
         'Financial records — six to ten years, depending on jurisdiction',
         'Marketing data — until you withdraw consent',
+        'Community signup details (name, email, phone) — three years from your last interaction with us, unless you ask us to erase them sooner',
+        'Community click records, which contain no name, email or phone number — fourteen months',
         'Cookies — as set out in our <a href="/cookies">Cookie Policy</a>',
       ] },
 
@@ -216,6 +229,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
         'Notify us promptly of any unauthorised access',
         'Be responsible for activity carried out under your account',
       ] },
+      p([t('Joining the community involves two separate steps. First you give your details to INSPIRE AFRICA on our own signup page; we hold those under our <a href="/privacy">Privacy Policy</a>. You are then taken to Mighty Networks, where you create a community account governed by their terms. We do not control that account, and cannot log in to, moderate or recover it on your behalf beyond what their platform allows us as the community host.')]),
 
       { __component: 'blocks.heading', level: 'h2', anchorId: 'acceptable-use', text: 'Acceptable use' },
       p([t('When using the platform you must not:')]),
@@ -332,6 +346,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
         '<strong>Google LLC</strong> — analytics',
         '<strong>LinkedIn Ireland Unlimited Company</strong> — campaign measurement',
         '<strong>Mighty Networks</strong> — our community platform, which sets its own cookies when you visit the community',
+        '<strong>INSPIRE AFRICA signup page</strong> — no cookie. When you click &ldquo;Join the Community&rdquo; we record that click on our own server, not in your browser. That record holds the page you came from and a one-way hash of your IP address; it holds no name, email or phone number unless you go on to complete the form. Because nothing is stored on your device and the record is necessary to operate the signup itself, it does not require cookie consent — see our <a href="/privacy">Privacy Policy</a> for the lawful basis and retention period.',
         '<strong>Wix.com Ltd</strong> — site infrastructure and form handling',
       ] },
       p([t('These providers process limited data on our behalf or as joint controllers. Their own privacy and cookie policies apply when you interact with them directly.')]),

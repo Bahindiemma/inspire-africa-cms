@@ -3,7 +3,7 @@ import { registerKeycloakRoutes } from './extensions/users-permissions/strategie
 import { seedRoles } from './bootstrap/seed-roles';
 import { seedAdminRoles } from './bootstrap/seed-admin-roles';
 import { ensurePublicApiToken } from './bootstrap/ensure-public-api-token';
-import { seedContent } from './bootstrap/seed-content';
+import { seedContent, seedLegalDocuments } from './bootstrap/seed-content';
 
 export default {
   /**
@@ -31,6 +31,18 @@ export default {
     await seedAdminRoles(strapi);
     await ensurePublicApiToken(strapi);
     await seedContent(strapi);
+
+    // 5. Optional: refresh ONLY the legal documents from legal-bodies.ts.
+    //    seedContent() above skips everything once the site is seeded, and
+    //    forcing it with RESEED_CONTENT=true would rewrite every page and
+    //    lose admin-side edits. Legal copy has to track what the code
+    //    actually does (e.g. what data the signup gate collects), so it
+    //    gets its own flag. Run once, then recreate without it.
+    if (String(process.env.RESEED_LEGAL || '').toLowerCase() === 'true') {
+      strapi.log.info('[bootstrap] RESEED_LEGAL=true — refreshing legal documents only.');
+      await seedLegalDocuments(strapi);
+    }
+
     strapi.log.info('[bootstrap] inspire-africa-cms is ready.');
   },
 };
