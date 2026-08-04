@@ -25,17 +25,17 @@ const UPLOAD_CEILING_BYTES = 2 * 1024 * 1024;
  * channel.
  *
  * Providers:
- *   smtp      — any authenticated relay (Microsoft 365, Google Workspace,
- *               or a transactional host). Set SMTP_HOST/PORT/USERNAME/
- *               PASSWORD. This is what inspireafricans.com uses.
+ *   smtp      — any authenticated relay. inspireafricans.com mail is on
+ *               GOOGLE WORKSPACE, so SMTP_HOST=smtp.gmail.com on port 587
+ *               with STARTTLS, authenticating as the sending mailbox with
+ *               a Google App Password (not the sign-in password).
  *   sendgrid  — API key, no SMTP.
  *   sendmail  — local binary. DEV ONLY: on a VPS with no configured MTA it
  *               either hangs or sends from an unauthenticated IP that
  *               receiving domains will treat as spam.
  *
  * IMPORTANT: authenticated relays require the From address to match the
- * mailbox you authenticate as (Microsoft 365 and Gmail both reject or
- * rewrite anything else). So EMAIL_FROM_ADDRESS and SMTP_USERNAME should be
+ * mailbox you authenticate as (Google rewrites or rejects anything else). So EMAIL_FROM_ADDRESS and SMTP_USERNAME should be
  * the same mailbox unless you have explicitly configured send-as rights.
  */
 function emailConfig(env: any) {
