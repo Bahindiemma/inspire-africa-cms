@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_profile_contact_points",
+  "info": { "displayName": "Contact point", "icon": "phone", "description": "Andrew item 2 — typed channels rather than five columns, so each carries its own verification state." },
+  "options": {},
+  "attributes": {
+    "kind": { "type": "enumeration", "enum": ["email", "sms", "messaging", "landline", "postal_address"], "required": true },
+    "value": { "type": "text", "required": true, "private": true },
+    "label": { "type": "string", "maxLength": 80 },
+    "isPrimary": { "type": "boolean", "default": false },
+    "verificationStatus": { "type": "enumeration", "enum": ["self_declared", "submitted", "verified", "rejected", "expired"], "default": "self_declared" }
+  }
+}

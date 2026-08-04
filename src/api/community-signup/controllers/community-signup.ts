@@ -27,6 +27,9 @@ import { clientIpFrom, hashIp } from '../../../utils/analytics/ip';
 import { parseUa } from '../../../utils/analytics/ua';
 import { allow } from '../../../utils/analytics/rate-limit';
 import { sanitizeClick, sanitizeSignup } from '../../../utils/community/validate';
+import { sanitizeProfile, scoreCompleteness } from '../../../utils/community/profile';
+import { isPiiEncryptionConfigured } from '../../../utils/community/crypto';
+import { randomBytes } from 'crypto';
 import {
   hashPassword,
   isPasswordEnabled,
@@ -313,6 +316,139 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       strapi.log.error(
         `[community-signup.submit] persist failed: ${(err as Error).message}`
       );
+      ctx.status = 500;
+      ctx.body = { error: 'persist_failed' };
+    }
+  },
+
+  /* ------------------------------------------------------------------ *
+   * POST /community/profile
+   *
+   * Wizard steps 2+ (Andrew items 1-6, 8). Step 1 already wrote a
+   * `Submitted` lead, so everything here is additive: a visitor who
+   * abandons at step 3 is still a captured lead, not a lost one.
+   *
+   * Identified by `resumeToken` (issued on first profile save) or by
+   * clickId. Deliberately NOT by email alone — that would let anyone who
+   * knows an address overwrite that person's profile.
+   * ------------------------------------------------------------------ */
+  async profile(ctx: any) {
+    // Fail closed: identity numbers must never land in the DB unencrypted.
+    if (!isPiiEncryptionConfigured()) {
+      strapi.log.error('[community-signup.profile] COMMUNITY_PII_KEY not configured — refusing profile writes.');
+      ctx.status = 503;
+      ctx.body = { error: 'profile_capture_unavailable' };
+      return;
+    }
+
+    const clickId = typeof ctx.request.body?.clickId === 'string'
+      ? ctx.request.body.clickId.slice(0, 64) : null;
+    const resumeToken = typeof ctx.request.body?.resumeToken === 'string'
+      ? ctx.request.body.resumeToken.slice(0, 64) : null;
+    if (!clickId && !resumeToken) {
+      ctx.status = 400;
+      ctx.body = { error: 'clickId or resumeToken is required' };
+      return;
+    }
+
+    let clean;
+    try {
+      clean = sanitizeProfile(ctx.request.body);
+    } catch (err) {
+      ctx.status = 400;
+      ctx.body = { error: (err as Error).message };
+      return;
+    }
+
+    const { ipHash } = enrich(ctx);
+    if (ipHash && !allow(`signup-profile:${ipHash}`, 30, 15)) {
+      ctx.status = 429;
+      ctx.body = { error: 'rate_limited' };
+      return;
+    }
+
+    const step = Math.min(6, Math.max(1, Number(ctx.request.body?.step) || 2));
+    const repo = strapi.db.query(UID);
+    const now = new Date();
+
+    try {
+      // Components MUST be populated here. scoreCompleteness() runs against
+      // the merged row, so an unpopulated fetch would count only the lists in
+      // the current request and silently under-report everything saved in
+      // earlier steps — the score would go DOWN as the profile filled up.
+      const populate = [
+        'identityDocuments',
+        'contactPoints',
+        'qualifications',
+        'workExperiences',
+        'languageCompetencies',
+        'characterReferences',
+      ];
+      const row = resumeToken
+        ? await repo.findOne({ where: { resumeToken }, populate })
+        : await repo.findOne({ where: { clickId }, populate });
+
+      if (!row) {
+        ctx.status = 404;
+        ctx.body = { error: 'signup_not_found' };
+        return;
+      }
+      if (resumeToken && row.resumeTokenExpiresAt && new Date(row.resumeTokenExpiresAt) < now) {
+        ctx.status = 410;
+        ctx.body = { error: 'resume_token_expired' };
+        return;
+      }
+
+      // Lists are REPLACED per step, not appended — the wizard always submits
+      // the full current list for the step being saved, so appending would
+      // duplicate every entry on each re-save. Untouched lists are omitted by
+      // the client and preserved by keepExisting() below.
+      const lists = keepExisting({
+        identityDocuments: clean.identityDocuments.length ? clean.identityDocuments : null,
+        contactPoints: clean.contactPoints.length ? clean.contactPoints : null,
+        qualifications: clean.qualifications.length ? clean.qualifications : null,
+        workExperiences: clean.workExperiences.length ? clean.workExperiences : null,
+        languageCompetencies: clean.languageCompetencies.length ? clean.languageCompetencies : null,
+        characterReferences: clean.characterReferences.length ? clean.characterReferences : null,
+      });
+
+      const scalars = keepExisting({
+        otherNames: clean.otherNames,
+        dateOfBirth: clean.dateOfBirth,
+        residentialAddress: clean.residentialAddress,
+      });
+
+      const token = row.resumeToken || randomBytes(24).toString('hex');
+      const merged = { ...row, ...scalars, ...lists };
+
+      // Document Service, NOT strapi.db.query — the query engine operates at
+      // the database layer and does not know how to write component arrays.
+      // The rest of this controller uses db.query because it only touches
+      // scalars; this handler is the one that writes components.
+      await strapi.documents(UID).update({
+        documentId: row.documentId,
+        data: {
+          ...scalars,
+          ...lists,
+          profileStep: Math.max(row.profileStep || 1, step),
+          profileCompleteness: scoreCompleteness(merged),
+          profileUpdatedAt: now,
+          resumeToken: token,
+          // 30 days: long enough to come back after a job or a data bundle,
+          // short enough that a leaked link does not stay live indefinitely.
+          resumeTokenExpiresAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+        } as any,
+      });
+
+      ctx.status = 200;
+      ctx.body = {
+        ok: true,
+        resumeToken: token,
+        profileStep: Math.max(row.profileStep || 1, step),
+        profileCompleteness: scoreCompleteness(merged),
+      };
+    } catch (err) {
+      strapi.log.error(`[community-signup.profile] persist failed: ${(err as Error).message}`);
       ctx.status = 500;
       ctx.body = { error: 'persist_failed' };
     }

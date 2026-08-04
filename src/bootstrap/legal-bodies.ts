@@ -88,6 +88,20 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
       ] },
       p([t('We also record the fact that a “Join the Community” button was clicked, before any details are entered. That record contains no name, email or phone number — only the page it came from and the anonymised values above. Once you arrive at Mighty Networks they will ask you to create an account with them, governed by their own privacy policy.')]),
 
+      { __component: 'blocks.heading', level: 'h3', text: 'Your profile, if you choose to complete it' },
+      p([t('After joining, we invite you to build a profile so we can match you to suitable opportunities. Every part of it is optional — you are a member whether or not you complete it, and you can stop at any point. If you do complete it, we collect:')]),
+      { __component: 'blocks.list', ordered: false, items: [
+        'Other names, and your date of birth',
+        'Identity document details — the type, issuing authority and expiry date, and the document number itself, which is <strong>encrypted</strong> before it is stored',
+        'Additional ways to contact you (SMS, messaging, landline, alternative email) and your residential address',
+        'Academic and professional qualifications, including the awarding institution',
+        'Your work history and the responsibilities you describe in your own words',
+        'Languages you speak, your level, and any language certificates you hold',
+        'The name, relationship and contact details of people you offer as character references',
+      ] },
+      p([t('We do <strong>not</strong> ask for health information, medical certificates, disease screening results or police clearance certificates when you sign up. If any of those ever become necessary for a specific role, we will ask separately, explain exactly why, and obtain your explicit consent first.')]),
+      { __component: 'blocks.callout', title: 'If you have been given as a reference', text: 'We hold a referee’s name and contact details because the applicant provided them. Before we contact a referee we tell them who gave us their details and why, and they can ask us to erase them at any time by writing to us.' },
+
       { __component: 'blocks.heading', level: 'h3', text: 'Automatically' },
       { __component: 'blocks.list', ordered: false, items: [
         'Device and browser information, IP address, approximate location',
@@ -137,6 +151,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
         'Financial records — six to ten years, depending on jurisdiction',
         'Marketing data — until you withdraw consent',
         'Community signup details (name, email, phone) — three years from your last interaction with us, unless you ask us to erase them sooner',
+        'Profile details you add after joining (identity document, qualifications, work history, languages, references) — three years from your last interaction, on the same clock as your signup',
         'Community click records, which contain no name, email or phone number — fourteen months',
         'Cookies — as set out in our <a href="/cookies">Cookie Policy</a>',
       ] },

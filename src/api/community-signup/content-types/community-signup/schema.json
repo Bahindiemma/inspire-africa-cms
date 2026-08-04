@@ -41,9 +41,12 @@
     "email": { "type": "email", "private": true, "maxLength": 254 },
     "firstName": { "type": "string", "private": true, "maxLength": 80 },
     "lastName": { "type": "string", "private": true, "maxLength": 80 },
+    "otherNames": { "type": "string", "private": true, "maxLength": 120 },
+    "dateOfBirth": { "type": "date", "private": true },
     "phone": { "type": "string", "private": true, "maxLength": 32 },
     "passwordHash": { "type": "string", "private": true, "maxLength": 255 },
     "country": { "type": "string", "maxLength": 80 },
+    "residentialAddress": { "type": "text", "private": true },
     "consentTerms": { "type": "boolean", "default": false },
     "consentMarketing": { "type": "boolean", "default": false },
     "consentRecordedAt": { "type": "datetime" },
@@ -66,6 +69,68 @@
       "default": "unknown"
     },
     "botScore": { "type": "float", "default": 0 },
-    "notes": { "type": "text" }
+    "notes": { "type": "text" },
+
+    "sourceOfName": {
+      "type": "enumeration",
+      "enum": ["self_selection", "bulk_upload", "staff_entry"],
+      "default": "self_selection",
+      "description": "Andrew item 11. bulk_upload means a third party supplied this person — duplicates must be flagged for human adjudication, NEVER auto-merged."
+    },
+    "sourceOfNameDetail": { "type": "string", "maxLength": 200 },
+
+    "profileStep": {
+      "type": "integer",
+      "default": 1,
+      "min": 1,
+      "max": 6,
+      "description": "Furthest wizard step completed. Step 1 alone is a captured lead."
+    },
+    "profileCompleteness": { "type": "integer", "default": 0, "min": 0, "max": 100 },
+    "resumeToken": { "type": "string", "private": true, "maxLength": 64 },
+    "resumeTokenExpiresAt": { "type": "datetime", "private": true },
+    "profileUpdatedAt": { "type": "datetime" },
+    "syncedToRegistryAt": {
+      "type": "datetime",
+      "description": "Set when this profile was pushed to the LMIS person registry. Null = not yet synced."
+    },
+    "syncError": { "type": "text", "private": true },
+
+    "identityDocuments": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.identity-document",
+      "private": true
+    },
+    "contactPoints": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.contact-point",
+      "private": true
+    },
+    "qualifications": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.qualification",
+      "private": true
+    },
+    "workExperiences": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.work-experience",
+      "private": true
+    },
+    "languageCompetencies": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.language-competency",
+      "private": true
+    },
+    "characterReferences": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.character-reference",
+      "private": true
+    }
   }
 }

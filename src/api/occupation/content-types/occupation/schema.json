@@ -1,0 +1,20 @@
+{
+  "kind": "collectionType",
+  "collectionName": "occupations",
+  "info": {
+    "singularName": "occupation",
+    "pluralName": "occupations",
+    "displayName": "Occupation (ISCO-08)",
+    "description": "The 'standard job description' a jobseeker's stated responsibilities are matched against (Andrew item 5). ISCO-08 chosen over O*NET (US-centric) and UK SOC (single country) because this is multi-corridor and pan-African."
+  },
+  "options": { "draftAndPublish": false },
+  "pluginOptions": { "content-manager": { "visible": true }, "content-api": { "visible": false } },
+  "attributes": {
+    "scheme": { "type": "string", "default": "ISCO-08", "required": true, "maxLength": 32 },
+    "code": { "type": "string", "required": true, "maxLength": 16 },
+    "title": { "type": "string", "required": true, "maxLength": 200 },
+    "description": { "type": "text" },
+    "level": { "type": "integer", "min": 1, "max": 4 },
+    "parentCode": { "type": "string", "maxLength": 16 }
+  }
+}

@@ -156,6 +156,49 @@ async function purgeOldData(strapi: Core.Strapi) {
  * Both windows are documented in the privacy policy — change one, change
  * the other.
  */
+/**
+ * Delete signups matching `where`, VIA THE DOCUMENT SERVICE.
+ *
+ * This must not use `strapi.db.query().deleteMany()`. Since the profile
+ * layer was added, a signup owns component rows holding an encrypted
+ * identity-document number and third-party referee contact details. The
+ * query engine deletes only the parent row and leaves those components
+ * orphaned in the database forever — so the retention window we publish in
+ * the privacy policy would silently not be honoured, and an erasure request
+ * would appear to succeed while the PII survived.
+ *
+ * Verified: deleting via db.query left identity-document and
+ * character-reference rows behind; deleting via the Document Service
+ * removes them.
+ *
+ * Batched because the Document Service deletes one document at a time.
+ */
+async function deleteSignupsWhere(strapi: Core.Strapi, where: any): Promise<number> {
+  const BATCH = 200;
+  let removed = 0;
+  for (;;) {
+    const rows = await strapi.db.query(SIGNUP_UID).findMany({
+      where,
+      select: ['documentId'],
+      limit: BATCH,
+    });
+    if (!rows.length) break;
+    for (const r of rows) {
+      try {
+        await strapi.documents(SIGNUP_UID as any).delete({ documentId: (r as any).documentId });
+        removed++;
+      } catch (err) {
+        strapi.log.warn(
+          `[analytics-cron] failed to delete signup ${(r as any).documentId}: ${(err as Error).message}`
+        );
+      }
+    }
+    // Fewer than a full batch means we have reached the end.
+    if (rows.length < BATCH) break;
+  }
+  return removed;
+}
+
 async function purgeOldCommunitySignups(strapi: Core.Strapi) {
   const monthsBack = (raw: string | undefined, fallback: number) => {
     const n = parseInt(raw || '', 10);
@@ -169,24 +212,18 @@ async function purgeOldCommunitySignups(strapi: Core.Strapi) {
   const leadCutoff = monthsBack(process.env.COMMUNITY_LEAD_RETENTION_MONTHS, 36);
 
   try {
-    const delClicks = await strapi.db.query(SIGNUP_UID).deleteMany({
-      where: {
-        status: { $in: ['Clicked', 'Spam', 'Duplicate'] },
-        clickedAt: { $lt: clickCutoff },
-      },
+    const clicks = await deleteSignupsWhere(strapi, {
+      status: { $in: ['Clicked', 'Spam', 'Duplicate'] },
+      clickedAt: { $lt: clickCutoff },
     });
-    const delLeads = await strapi.db.query(SIGNUP_UID).deleteMany({
-      where: {
-        status: { $in: ['Submitted', 'RedirectedToMN', 'MemberConfirmed'] },
-        submittedAt: { $lt: leadCutoff },
-      },
+    const leads = await deleteSignupsWhere(strapi, {
+      status: { $in: ['Submitted', 'RedirectedToMN', 'MemberConfirmed'] },
+      submittedAt: { $lt: leadCutoff },
     });
     strapi.log.info(
-      `[analytics-cron] community-signup purge: removed ${
-        (delClicks as any)?.count ?? 0
-      } click rows (< ${clickCutoff.toISOString().slice(0, 10)}), ${
-        (delLeads as any)?.count ?? 0
-      } lead rows (< ${leadCutoff.toISOString().slice(0, 10)}).`
+      `[analytics-cron] community-signup purge: removed ${clicks} click rows (< ${clickCutoff
+        .toISOString()
+        .slice(0, 10)}), ${leads} lead rows (< ${leadCutoff.toISOString().slice(0, 10)}).`
     );
   } catch (err) {
     strapi.log.warn(

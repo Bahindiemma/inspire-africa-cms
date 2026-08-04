@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_profile_qualifications",
+  "info": { "displayName": "Qualification", "icon": "graduation-cap", "description": "Andrew items 3 AND 4 — same shape, discriminated by `kind`. kind=professional covers short courses and everything else." },
+  "options": {},
+  "attributes": {
+    "kind": { "type": "enumeration", "enum": ["academic", "professional"], "required": true },
+    "title": { "type": "string", "required": true, "maxLength": 200 },
+    "level": { "type": "enumeration", "enum": ["certificate", "diploma", "bachelor", "master", "doctorate", "short_course", "other"] },
+    "fieldOfStudy": { "type": "string", "maxLength": 160 },
+    "issuingBodyName": { "type": "string", "maxLength": 200 },
+    "issuingBodyCountry": { "type": "string", "maxLength": 80 },
+    "reference": { "type": "string", "maxLength": 120 },
+    "awardedOn": { "type": "date" },
+    "expiresOn": { "type": "date" },
+    "grade": { "type": "string", "maxLength": 60 },
+    "verificationStatus": { "type": "enumeration", "enum": ["self_declared", "submitted", "verified", "rejected", "expired"], "default": "self_declared" }
+  }
+}

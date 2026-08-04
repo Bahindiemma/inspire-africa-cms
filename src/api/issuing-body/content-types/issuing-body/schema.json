@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "issuing_bodies",
+  "info": {
+    "singularName": "issuing-body",
+    "pluralName": "issuing-bodies",
+    "displayName": "Issuing Body",
+    "description": "Awarding institutions + their accreditation by the competent national authority (Andrew items 3, 4). Staff-maintained reference data. Qualifications capture the body as free text at signup; matching to this registry happens afterwards, because a jobseeker types their college name — they do not pick from a list."
+  },
+  "options": { "draftAndPublish": false },
+  "pluginOptions": { "content-manager": { "visible": true }, "content-api": { "visible": false } },
+  "attributes": {
+    "name": { "type": "string", "required": true, "maxLength": 200 },
+    "country": { "type": "string", "maxLength": 80 },
+    "kind": { "type": "enumeration", "enum": ["university", "college", "training_provider", "government", "professional_body", "employer", "other"] },
+    "website": { "type": "string", "maxLength": 255 },
+    "accreditationAuthority": { "type": "string", "maxLength": 200 },
+    "accreditationStatus": { "type": "enumeration", "enum": ["accredited", "not_accredited", "suspended", "expired", "unknown"], "default": "unknown", "required": true },
+    "accreditationScope": { "type": "string", "maxLength": 160 },
+    "accreditationReference": { "type": "string", "maxLength": 120 },
+    "accreditationValidFrom": { "type": "date" },
+    "accreditationValidTo": { "type": "date" },
+    "evidenceUrl": { "type": "string", "maxLength": 500 },
+    "checkedAt": { "type": "datetime" },
+    "notes": { "type": "text" }
+  }
+}

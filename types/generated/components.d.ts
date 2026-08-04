@@ -217,6 +217,246 @@ export interface CardsTestimonial extends Struct.ComponentSchema {
   };
 }
 
+export interface ProfileCharacterReference extends Struct.ComponentSchema {
+  collectionName: 'components_profile_character_references';
+  info: {
+    description: 'Andrew item 8. Referees are third parties who never consented themselves \u2014 contact details are private and require an Article 14 source-of-data notice.';
+    displayName: 'Character reference';
+    icon: 'user-friends';
+  };
+  attributes: {
+    email: Schema.Attribute.Text & Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    noticeSentAt: Schema.Attribute.DateTime & Schema.Attribute.Private;
+    organisation: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    phone: Schema.Attribute.Text & Schema.Attribute.Private;
+    relationship: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    status: Schema.Attribute.Enumeration<
+      ['not_contacted', 'requested', 'received', 'declined']
+    > &
+      Schema.Attribute.DefaultTo<'not_contacted'>;
+  };
+}
+
+export interface ProfileContactPoint extends Struct.ComponentSchema {
+  collectionName: 'components_profile_contact_points';
+  info: {
+    description: 'Andrew item 2 \u2014 typed channels rather than five columns, so each carries its own verification state.';
+    displayName: 'Contact point';
+    icon: 'phone';
+  };
+  attributes: {
+    isPrimary: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    kind: Schema.Attribute.Enumeration<
+      ['email', 'sms', 'messaging', 'landline', 'postal_address']
+    > &
+      Schema.Attribute.Required;
+    label: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    value: Schema.Attribute.Text &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['self_declared', 'submitted', 'verified', 'rejected', 'expired']
+    > &
+      Schema.Attribute.DefaultTo<'self_declared'>;
+  };
+}
+
+export interface ProfileIdentityDocument extends Struct.ComponentSchema {
+  collectionName: 'components_profile_identity_documents';
+  info: {
+    description: 'Andrew item 1. `number` is encrypted by the controller before storage \u2014 never write to it directly.';
+    displayName: 'Identity document';
+    icon: 'id-card';
+  };
+  attributes: {
+    expiresOn: Schema.Attribute.Date;
+    issuedOn: Schema.Attribute.Date;
+    issuingAuthority: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    issuingCountry: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    kind: Schema.Attribute.Enumeration<
+      [
+        'passport',
+        'national_id',
+        'birth_certificate',
+        'drivers_licence',
+        'residence_permit',
+        'other',
+      ]
+    > &
+      Schema.Attribute.Required;
+    numberEncrypted: Schema.Attribute.Text & Schema.Attribute.Private;
+    numberLast4: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 4;
+      }>;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['self_declared', 'submitted', 'verified', 'rejected', 'expired']
+    > &
+      Schema.Attribute.DefaultTo<'self_declared'>;
+  };
+}
+
+export interface ProfileLanguageCompetency extends Struct.ComponentSchema {
+  collectionName: 'components_profile_language_competencies';
+  info: {
+    description: 'Andrew item 6 \u2014 all seven attributes he listed.';
+    displayName: 'Language competency';
+    icon: 'language';
+  };
+  attributes: {
+    expiresOn: Schema.Attribute.Date;
+    framework: Schema.Attribute.Enumeration<
+      ['CEFR', 'IELTS', 'TOEFL', 'other']
+    > &
+      Schema.Attribute.DefaultTo<'CEFR'>;
+    grade: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 60;
+      }>;
+    issuingBodyName: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    languageCode: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 8;
+      }>;
+    languageName: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    level: Schema.Attribute.Enumeration<
+      ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'native']
+    >;
+    qualificationTitle: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    qualifiedOn: Schema.Attribute.Date;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['self_declared', 'submitted', 'verified', 'rejected', 'expired']
+    > &
+      Schema.Attribute.DefaultTo<'self_declared'>;
+  };
+}
+
+export interface ProfileQualification extends Struct.ComponentSchema {
+  collectionName: 'components_profile_qualifications';
+  info: {
+    description: 'Andrew items 3 AND 4 \u2014 same shape, discriminated by `kind`. kind=professional covers short courses and everything else.';
+    displayName: 'Qualification';
+    icon: 'graduation-cap';
+  };
+  attributes: {
+    awardedOn: Schema.Attribute.Date;
+    expiresOn: Schema.Attribute.Date;
+    fieldOfStudy: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    grade: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 60;
+      }>;
+    issuingBodyCountry: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    issuingBodyName: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    kind: Schema.Attribute.Enumeration<['academic', 'professional']> &
+      Schema.Attribute.Required;
+    level: Schema.Attribute.Enumeration<
+      [
+        'certificate',
+        'diploma',
+        'bachelor',
+        'master',
+        'doctorate',
+        'short_course',
+        'other',
+      ]
+    >;
+    reference: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['self_declared', 'submitted', 'verified', 'rejected', 'expired']
+    > &
+      Schema.Attribute.DefaultTo<'self_declared'>;
+  };
+}
+
+export interface ProfileWorkExperience extends Struct.ComponentSchema {
+  collectionName: 'components_profile_work_experiences';
+  info: {
+    description: "Andrew item 5. `responsibilities` is the jobseeker's own words (evidence); `occupationCode` is our ISCO-08 match (interpretation). Both are kept.";
+    displayName: 'Work experience';
+    icon: 'briefcase';
+  };
+  attributes: {
+    employerCountry: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    employerName: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    endedOn: Schema.Attribute.Date;
+    isCurrent: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    jobTitle: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    matchSource: Schema.Attribute.Enumeration<
+      ['self_selected', 'staff_matched', 'auto_suggested']
+    >;
+    occupationCode: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 16;
+      }>;
+    responsibilities: Schema.Attribute.Text;
+    startedOn: Schema.Attribute.Date;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['self_declared', 'submitted', 'verified', 'rejected', 'expired']
+    > &
+      Schema.Attribute.DefaultTo<'self_declared'>;
+  };
+}
+
 export interface SectionsAudiences extends Struct.ComponentSchema {
   collectionName: 'components_sections_audiences';
   info: {
@@ -600,6 +840,12 @@ declare module '@strapi/strapi' {
       'cards.stat': CardsStat;
       'cards.step-card': CardsStepCard;
       'cards.testimonial': CardsTestimonial;
+      'profile.character-reference': ProfileCharacterReference;
+      'profile.contact-point': ProfileContactPoint;
+      'profile.identity-document': ProfileIdentityDocument;
+      'profile.language-competency': ProfileLanguageCompetency;
+      'profile.qualification': ProfileQualification;
+      'profile.work-experience': ProfileWorkExperience;
       'sections.audiences': SectionsAudiences;
       'sections.corridors-marquee': SectionsCorridorsMarquee;
       'sections.feature-list': SectionsFeatureList;

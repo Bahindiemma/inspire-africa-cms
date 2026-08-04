@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_profile_character_references",
+  "info": { "displayName": "Character reference", "icon": "user-friends", "description": "Andrew item 8. Referees are third parties who never consented themselves — contact details are private and require an Article 14 source-of-data notice." },
+  "options": {},
+  "attributes": {
+    "name": { "type": "string", "required": true, "maxLength": 160 },
+    "relationship": { "type": "string", "maxLength": 120 },
+    "email": { "type": "text", "private": true },
+    "phone": { "type": "text", "private": true },
+    "organisation": { "type": "string", "maxLength": 200 },
+    "status": { "type": "enumeration", "enum": ["not_contacted", "requested", "received", "declined"], "default": "not_contacted" },
+    "noticeSentAt": { "type": "datetime", "private": true }
+  }
+}

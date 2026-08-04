@@ -31,6 +31,16 @@ export default {
       config: { auth: false, policies: ['global::is-signup-ingest'] },
     },
     {
+      // Wizard steps 2+ — Andrew items 1-6 and 8. Same shared-secret gate as
+      // the other write routes; this one carries the most sensitive payload
+      // on the site (identity documents), so it additionally refuses to run
+      // when COMMUNITY_PII_KEY is unset.
+      method: 'POST',
+      path: '/community/profile',
+      handler: 'community-signup.profile',
+      config: { auth: false, policies: ['global::is-signup-ingest'] },
+    },
+    {
       // Aggregate counts ONLY — the handler selects just status/source/
       // utmCampaign/clickedAt/botScore, so no name, email, phone or ipHash
       // can appear in the response. Gated by the same shared secret as the

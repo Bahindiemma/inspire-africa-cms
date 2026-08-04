@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_profile_language_competencies",
+  "info": { "displayName": "Language competency", "icon": "language", "description": "Andrew item 6 — all seven attributes he listed." },
+  "options": {},
+  "attributes": {
+    "languageCode": { "type": "string", "required": true, "maxLength": 8 },
+    "languageName": { "type": "string", "maxLength": 80 },
+    "level": { "type": "enumeration", "enum": ["A1", "A2", "B1", "B2", "C1", "C2", "native"] },
+    "framework": { "type": "enumeration", "enum": ["CEFR", "IELTS", "TOEFL", "other"], "default": "CEFR" },
+    "qualificationTitle": { "type": "string", "maxLength": 160 },
+    "issuingBodyName": { "type": "string", "maxLength": 200 },
+    "qualifiedOn": { "type": "date" },
+    "expiresOn": { "type": "date" },
+    "grade": { "type": "string", "maxLength": 60 },
+    "verificationStatus": { "type": "enumeration", "enum": ["self_declared", "submitted", "verified", "rejected", "expired"], "default": "self_declared" }
+  }
+}

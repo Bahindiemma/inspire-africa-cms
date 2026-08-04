@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_profile_identity_documents",
+  "info": { "displayName": "Identity document", "icon": "id-card", "description": "Andrew item 1. `number` is encrypted by the controller before storage — never write to it directly." },
+  "options": {},
+  "attributes": {
+    "kind": { "type": "enumeration", "enum": ["passport", "national_id", "birth_certificate", "drivers_licence", "residence_permit", "other"], "required": true },
+    "numberEncrypted": { "type": "text", "private": true },
+    "numberLast4": { "type": "string", "maxLength": 4, "private": true },
+    "issuingAuthority": { "type": "string", "maxLength": 160 },
+    "issuingCountry": { "type": "string", "maxLength": 80 },
+    "issuedOn": { "type": "date" },
+    "expiresOn": { "type": "date" },
+    "verificationStatus": { "type": "enumeration", "enum": ["self_declared", "submitted", "verified", "rejected", "expired"], "default": "self_declared" }
+  }
+}
