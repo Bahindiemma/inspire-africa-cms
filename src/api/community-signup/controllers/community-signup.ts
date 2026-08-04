@@ -389,16 +389,32 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         'healthClearances',
         'diseaseScreenings',
       ];
-      const row = resumeToken
-        ? await repo.findOne({ where: { resumeToken }, populate })
-        : await repo.findOne({ where: { clickId }, populate });
+      // clickId FIRST, resumeToken second — and fall back to the other if the
+      // first misses.
+      //
+      // Preferring the token was a real bug: the browser keeps the resume
+      // cookie for 30 days, so anyone starting a second signup, or returning
+      // after their first was purged by the retention job, was looked up by a
+      // token that no longer resolves and got a permanent 404. They could
+      // reach the wizard and fill it in, but nothing would ever save.
+      // The clickId is the explicit, current identity; the token is only a
+      // convenience for someone returning without one.
+      let row = clickId ? await repo.findOne({ where: { clickId }, populate }) : null;
+      let resolvedByToken = false;
+      if (!row && resumeToken) {
+        row = await repo.findOne({ where: { resumeToken }, populate });
+        resolvedByToken = !!row;
+      }
 
       if (!row) {
         ctx.status = 404;
         ctx.body = { error: 'signup_not_found' };
         return;
       }
-      if (resumeToken && row.resumeTokenExpiresAt && new Date(row.resumeTokenExpiresAt) < now) {
+      // Expiry only matters when the TOKEN is what identified the row. If we
+      // resolved by clickId the visitor is in an active session and a stale
+      // cookie riding along is irrelevant.
+      if (resolvedByToken && row.resumeTokenExpiresAt && new Date(row.resumeTokenExpiresAt) < now) {
         ctx.status = 410;
         ctx.body = { error: 'resume_token_expired' };
         return;
