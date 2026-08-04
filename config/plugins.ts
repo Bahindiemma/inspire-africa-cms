@@ -9,12 +9,10 @@
 /**
  * Hard ceiling for ANY upload, in bytes.
  *
- * Signup documents are CV PDFs and ID photographs. At ~2 MB each and a few
- * documents per registrant, 10,000 registrants is already tens of GB on a
- * VPS whose disk is shared with several other production applications — so
- * this is a storage-capacity limit, not a nicety. Per-type limits (smaller
- * still) are enforced in the Next.js upload path before anything reaches
- * Strapi; this is the backstop for everything else.
+ * Signup no longer accepts uploads, so this now only bounds media added
+ * through the admin panel. Kept low deliberately: this VPS disk is shared
+ * with several other production applications, and the old 50 MB limit was
+ * inherited from the marketing image library.
  */
 const UPLOAD_CEILING_BYTES = 2 * 1024 * 1024;
 

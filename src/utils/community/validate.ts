@@ -5,28 +5,28 @@
  * leaked token upstream must not be able to write unbounded data.
  *
  * Difference from the analytics validator: this one handles PII, so it
- * additionally normalises email/phone and NEVER echoes values back in
- * error messages (an error string can end up in a log aggregator).
+ * additionally normalises the email and NEVER echoes values back in error
+ * messages (an error string can end up in a log aggregator).
+ *
+ * Signup captures name + email + registrant type ONLY. Phone, country and
+ * the optional password were removed when the form was reduced.
  */
 export const LIMITS = {
   maxClickId: 64,
   maxName: 80,
   maxEmail: 254,
-  maxPhone: 32,
-  maxCountry: 80,
   maxSource: 128,
   maxUtm: 128,
   maxHost: 255,
   maxPath: 512,
   maxUa: 512,
-  maxPassword: 200,
-  minPassword: 12,
 };
 
 /** Lifecycle states the ingest layer is allowed to set. */
 export const INGEST_STATUSES = new Set([
   'Clicked',
   'Submitted',
+  'Verified',
   'RedirectedToMN',
 ]);
 
@@ -57,21 +57,6 @@ export function normaliseEmail(v: unknown): string | null {
   const lower = s.toLowerCase();
   if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(lower)) return null;
   return lower;
-}
-
-/**
- * Keep digits and a single leading '+'. We do NOT enforce E.164 country
- * validity — a Ugandan number typed without a dial code is still a lead
- * worth keeping, and rejecting it loses us the whole submission. The
- * form supplies a dial code; this just strips formatting noise.
- */
-export function normalisePhone(v: unknown): string | null {
-  const s = str(v, LIMITS.maxPhone);
-  if (!s) return null;
-  const plus = s.trim().startsWith('+');
-  const digits = s.replace(/\D+/g, '');
-  if (digits.length < 6) return null; // structurally unusable
-  return (plus ? '+' : '') + digits.slice(0, LIMITS.maxPhone - 1);
 }
 
 export function hostOnly(v: unknown): string | null {
@@ -108,9 +93,6 @@ export interface CleanSignup extends CleanClick {
   email: string;
   firstName: string | null;
   lastName: string | null;
-  phone: string | null;
-  country: string | null;
-  password: string | null;
   consentTerms: boolean;
   consentMarketing: boolean;
   /** Honeypot field — any value means a bot filled a hidden input. */
@@ -137,8 +119,6 @@ export function sanitizeSignup(body: any): CleanSignup {
   const email = normaliseEmail(body.email);
   if (!email) throw new Error('a valid email is required');
 
-  const password = str(body.password, LIMITS.maxPassword);
-
   const rt = str(body.registrantType, 32);
 
   return {
@@ -150,9 +130,6 @@ export function sanitizeSignup(body: any): CleanSignup {
     email,
     firstName: str(body.firstName, LIMITS.maxName),
     lastName: str(body.lastName, LIMITS.maxName),
-    phone: normalisePhone(body.phone),
-    country: str(body.country, LIMITS.maxCountry),
-    password,
     consentTerms: bool(body.consentTerms),
     consentMarketing: bool(body.consentMarketing),
     trap: Boolean(str(body.company, 200)), // honeypot input is named "company"

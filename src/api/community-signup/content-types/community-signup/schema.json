@@ -5,7 +5,7 @@
     "singularName": "community-signup",
     "pluralName": "community-signups",
     "displayName": "Community Signup",
-    "description": "Intent-to-join records for the Mighty Networks community. One row per click on a 'Join the Community' CTA (status Clicked), upgraded to Submitted when the visitor gives us their details, then RedirectedToMN on handoff. Identity fields are `private` (never returned by the content API). The raw IP is never stored — only a salted hash, mirroring analytics-session."
+    "description": "Intent-to-join records for the Mighty Networks community. One row per click on a 'Join the Community' CTA (status Clicked), upgraded to Submitted when the visitor gives their name and email, Verified once they confirm the email, then RedirectedToMN on handoff. Identity fields are `private` (never returned by the content API). The raw IP is never stored — only a salted hash, mirroring analytics-session."
   },
   "options": {
     "draftAndPublish": false
@@ -30,6 +30,7 @@
       "enum": [
         "Clicked",
         "Submitted",
+        "Verified",
         "RedirectedToMN",
         "MemberConfirmed",
         "Duplicate",
@@ -38,97 +39,45 @@
       "default": "Clicked",
       "required": true
     },
-    "email": { "type": "email", "private": true, "maxLength": 254 },
-    "firstName": { "type": "string", "private": true, "maxLength": 80 },
-    "lastName": { "type": "string", "private": true, "maxLength": 80 },
-    "otherNames": { "type": "string", "private": true, "maxLength": 120 },
-    "dateOfBirth": { "type": "date", "private": true },
-    "phone": { "type": "string", "private": true, "maxLength": 32 },
-    "passwordHash": { "type": "string", "private": true, "maxLength": 255 },
-    "country": { "type": "string", "maxLength": 80 },
-    "residentialAddress": { "type": "text", "private": true },
-    "consentTerms": { "type": "boolean", "default": false },
-    "consentMarketing": { "type": "boolean", "default": false },
-    "consentRecordedAt": { "type": "datetime" },
-    "source": { "type": "string", "maxLength": 128 },
-    "utmSource": { "type": "string", "maxLength": 128 },
-    "utmMedium": { "type": "string", "maxLength": 128 },
-    "utmCampaign": { "type": "string", "maxLength": 128 },
-    "referrerHost": { "type": "string", "maxLength": 255 },
-    "landingPath": { "type": "string", "maxLength": 512 },
-    "attempts": { "type": "integer", "default": 1, "min": 0 },
-    "clickedAt": { "type": "datetime" },
-    "submittedAt": { "type": "datetime" },
-    "redirectedAt": { "type": "datetime" },
-    "confirmedAt": { "type": "datetime" },
-    "ipHash": { "type": "string", "private": true, "maxLength": 64 },
-    "userAgent": { "type": "string", "private": true, "maxLength": 512 },
-    "deviceType": {
-      "type": "enumeration",
-      "enum": ["mobile", "tablet", "desktop", "bot", "unknown"],
-      "default": "unknown"
-    },
-    "botScore": { "type": "float", "default": 0 },
-    "notes": { "type": "text" },
 
     "registrantType": {
       "type": "enumeration",
       "enum": ["jobseeker", "employer", "government", "other"],
       "default": "jobseeker",
       "required": true,
-      "description": "Andrew: 'everyone must pass, regardless of their status'. Chosen at step 1 — it decides which wizard steps are shown and, more importantly, which data we may lawfully ask for. An employer contact must never be asked for a passport or a TB result."
+      "description": "Andrew: 'everyone must pass, regardless of their status'. Asked at signup so every record is attributable to an audience from the first touch."
     },
-    "consentSpecialCategory": {
+
+    "email": { "type": "email", "private": true, "maxLength": 254 },
+    "firstName": { "type": "string", "private": true, "maxLength": 80 },
+    "lastName": { "type": "string", "private": true, "maxLength": 80 },
+
+    "emailVerified": {
       "type": "boolean",
       "default": false,
-      "description": "Explicit, SEPARATE consent for health and police-clearance data. GDPR Article 9(2)(a) requires this to be distinct from general terms acceptance — it is deliberately NOT covered by consentTerms."
+      "description": "Nobody reaches the community until this is true."
     },
-    "consentSpecialCategoryAt": { "type": "datetime" },
+    "emailVerifiedAt": { "type": "datetime" },
+    "verificationTokenHash": {
+      "type": "string",
+      "private": true,
+      "maxLength": 64,
+      "description": "SHA-256 of the emailed token. The token itself is never stored — a database leak must not hand an attacker working verification links."
+    },
+    "verificationSentAt": { "type": "datetime" },
+    "verificationExpiresAt": { "type": "datetime" },
+    "verificationSendCount": { "type": "integer", "default": 0, "min": 0 },
 
-    "profileImage": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": ["images"],
-      "private": true
-    },
-    "cvFile": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": ["files"],
-      "private": true
-    },
-    "supportingDocuments": {
-      "type": "media",
-      "multiple": true,
-      "allowedTypes": ["files", "images"],
-      "private": true
-    },
+    "consentTerms": { "type": "boolean", "default": false },
+    "consentMarketing": { "type": "boolean", "default": false },
+    "consentRecordedAt": { "type": "datetime" },
 
-    "organisation": {
-      "type": "component",
-      "repeatable": false,
-      "component": "profile.organisation",
-      "private": true
-    },
-    "hiringNeeds": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.hiring-need",
-      "private": true
-    },
-    "healthClearances": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.health-clearance",
-      "private": true
-    },
-    "diseaseScreenings": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.disease-screening",
-      "private": true
-    },
-
+    "source": { "type": "string", "maxLength": 128 },
+    "utmSource": { "type": "string", "maxLength": 128 },
+    "utmMedium": { "type": "string", "maxLength": 128 },
+    "utmCampaign": { "type": "string", "maxLength": 128 },
+    "referrerHost": { "type": "string", "maxLength": 255 },
+    "landingPath": { "type": "string", "maxLength": 512 },
     "sourceOfName": {
       "type": "enumeration",
       "enum": ["self_selection", "bulk_upload", "staff_entry"],
@@ -137,58 +86,20 @@
     },
     "sourceOfNameDetail": { "type": "string", "maxLength": 200 },
 
-    "profileStep": {
-      "type": "integer",
-      "default": 1,
-      "min": 1,
-      "max": 6,
-      "description": "Furthest wizard step completed. Step 1 alone is a captured lead."
-    },
-    "profileCompleteness": { "type": "integer", "default": 0, "min": 0, "max": 100 },
-    "resumeToken": { "type": "string", "private": true, "maxLength": 64 },
-    "resumeTokenExpiresAt": { "type": "datetime", "private": true },
-    "profileUpdatedAt": { "type": "datetime" },
-    "syncedToRegistryAt": {
-      "type": "datetime",
-      "description": "Set when this profile was pushed to the LMIS person registry. Null = not yet synced."
-    },
-    "syncError": { "type": "text", "private": true },
+    "attempts": { "type": "integer", "default": 1, "min": 0 },
+    "clickedAt": { "type": "datetime" },
+    "submittedAt": { "type": "datetime" },
+    "redirectedAt": { "type": "datetime" },
+    "confirmedAt": { "type": "datetime" },
 
-    "identityDocuments": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.identity-document",
-      "private": true
+    "ipHash": { "type": "string", "private": true, "maxLength": 64 },
+    "userAgent": { "type": "string", "private": true, "maxLength": 512 },
+    "deviceType": {
+      "type": "enumeration",
+      "enum": ["mobile", "tablet", "desktop", "bot", "unknown"],
+      "default": "unknown"
     },
-    "contactPoints": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.contact-point",
-      "private": true
-    },
-    "qualifications": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.qualification",
-      "private": true
-    },
-    "workExperiences": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.work-experience",
-      "private": true
-    },
-    "languageCompetencies": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.language-competency",
-      "private": true
-    },
-    "characterReferences": {
-      "type": "component",
-      "repeatable": true,
-      "component": "profile.character-reference",
-      "private": true
-    }
+    "botScore": { "type": "float", "default": 0 },
+    "notes": { "type": "text" }
   }
 }

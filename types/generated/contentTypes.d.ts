@@ -960,7 +960,7 @@ export interface ApiCommunitySignupCommunitySignup
   extends Struct.CollectionTypeSchema {
   collectionName: 'community_signups';
   info: {
-    description: "Intent-to-join records for the Mighty Networks community. One row per click on a 'Join the Community' CTA (status Clicked), upgraded to Submitted when the visitor gives us their details, then RedirectedToMN on handoff. Identity fields are `private` (never returned by the content API). The raw IP is never stored \u2014 only a salted hash, mirroring analytics-session.";
+    description: "Intent-to-join records for the Mighty Networks community. One row per click on a 'Join the Community' CTA (status Clicked), upgraded to Submitted when the visitor gives their name and email, Verified once they confirm the email, then RedirectedToMN on handoff. Identity fields are `private` (never returned by the content API). The raw IP is never stored \u2014 only a salted hash, mirroring analytics-session.";
     displayName: 'Community Signup';
     pluralName: 'community-signups';
     singularName: 'community-signup';
@@ -986,11 +986,6 @@ export interface ApiCommunitySignupCommunitySignup
       > &
       Schema.Attribute.DefaultTo<1>;
     botScore: Schema.Attribute.Float & Schema.Attribute.DefaultTo<0>;
-    characterReferences: Schema.Attribute.Component<
-      'profile.character-reference',
-      true
-    > &
-      Schema.Attribute.Private;
     clickedAt: Schema.Attribute.DateTime;
     clickId: Schema.Attribute.String &
       Schema.Attribute.Required &
@@ -1002,52 +997,26 @@ export interface ApiCommunitySignupCommunitySignup
     consentMarketing: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
     consentRecordedAt: Schema.Attribute.DateTime;
-    consentSpecialCategory: Schema.Attribute.Boolean &
-      Schema.Attribute.DefaultTo<false>;
-    consentSpecialCategoryAt: Schema.Attribute.DateTime;
     consentTerms: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
-    contactPoints: Schema.Attribute.Component<'profile.contact-point', true> &
-      Schema.Attribute.Private;
-    country: Schema.Attribute.String &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 80;
-      }>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    cvFile: Schema.Attribute.Media<'files'> & Schema.Attribute.Private;
-    dateOfBirth: Schema.Attribute.Date & Schema.Attribute.Private;
     deviceType: Schema.Attribute.Enumeration<
       ['mobile', 'tablet', 'desktop', 'bot', 'unknown']
     > &
       Schema.Attribute.DefaultTo<'unknown'>;
-    diseaseScreenings: Schema.Attribute.Component<
-      'profile.disease-screening',
-      true
-    > &
-      Schema.Attribute.Private;
     email: Schema.Attribute.Email &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 254;
       }>;
+    emailVerified: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    emailVerifiedAt: Schema.Attribute.DateTime;
     firstName: Schema.Attribute.String &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 80;
       }>;
-    healthClearances: Schema.Attribute.Component<
-      'profile.health-clearance',
-      true
-    > &
-      Schema.Attribute.Private;
-    hiringNeeds: Schema.Attribute.Component<'profile.hiring-need', true> &
-      Schema.Attribute.Private;
-    identityDocuments: Schema.Attribute.Component<
-      'profile.identity-document',
-      true
-    > &
-      Schema.Attribute.Private;
     ipHash: Schema.Attribute.String &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -1057,11 +1026,6 @@ export interface ApiCommunitySignupCommunitySignup
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 512;
       }>;
-    languageCompetencies: Schema.Attribute.Component<
-      'profile.language-competency',
-      true
-    > &
-      Schema.Attribute.Private;
     lastName: Schema.Attribute.String &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -1074,46 +1038,7 @@ export interface ApiCommunitySignupCommunitySignup
     > &
       Schema.Attribute.Private;
     notes: Schema.Attribute.Text;
-    organisation: Schema.Attribute.Component<'profile.organisation', false> &
-      Schema.Attribute.Private;
-    otherNames: Schema.Attribute.String &
-      Schema.Attribute.Private &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 120;
-      }>;
-    passwordHash: Schema.Attribute.String &
-      Schema.Attribute.Private &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 255;
-      }>;
-    phone: Schema.Attribute.String &
-      Schema.Attribute.Private &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 32;
-      }>;
-    profileCompleteness: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 100;
-          min: 0;
-        },
-        number
-      > &
-      Schema.Attribute.DefaultTo<0>;
-    profileImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Private;
-    profileStep: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 6;
-          min: 1;
-        },
-        number
-      > &
-      Schema.Attribute.DefaultTo<1>;
-    profileUpdatedAt: Schema.Attribute.DateTime;
     publishedAt: Schema.Attribute.DateTime;
-    qualifications: Schema.Attribute.Component<'profile.qualification', true> &
-      Schema.Attribute.Private;
     redirectedAt: Schema.Attribute.DateTime;
     referrerHost: Schema.Attribute.String &
       Schema.Attribute.SetMinMaxLength<{
@@ -1124,13 +1049,6 @@ export interface ApiCommunitySignupCommunitySignup
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'jobseeker'>;
-    residentialAddress: Schema.Attribute.Text & Schema.Attribute.Private;
-    resumeToken: Schema.Attribute.String &
-      Schema.Attribute.Private &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 64;
-      }>;
-    resumeTokenExpiresAt: Schema.Attribute.DateTime & Schema.Attribute.Private;
     source: Schema.Attribute.String &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 128;
@@ -1147,6 +1065,7 @@ export interface ApiCommunitySignupCommunitySignup
       [
         'Clicked',
         'Submitted',
+        'Verified',
         'RedirectedToMN',
         'MemberConfirmed',
         'Duplicate',
@@ -1156,10 +1075,6 @@ export interface ApiCommunitySignupCommunitySignup
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'Clicked'>;
     submittedAt: Schema.Attribute.DateTime;
-    supportingDocuments: Schema.Attribute.Media<'files' | 'images', true> &
-      Schema.Attribute.Private;
-    syncedToRegistryAt: Schema.Attribute.DateTime;
-    syncError: Schema.Attribute.Text & Schema.Attribute.Private;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1180,11 +1095,21 @@ export interface ApiCommunitySignupCommunitySignup
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 128;
       }>;
-    workExperiences: Schema.Attribute.Component<
-      'profile.work-experience',
-      true
-    > &
-      Schema.Attribute.Private;
+    verificationExpiresAt: Schema.Attribute.DateTime;
+    verificationSendCount: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    verificationSentAt: Schema.Attribute.DateTime;
+    verificationTokenHash: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 64;
+      }>;
   };
 }
 

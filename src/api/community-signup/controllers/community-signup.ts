@@ -1,40 +1,40 @@
 /**
  * Community signup ingest + reporting controller.
  *
- * Three custom routes (all token-gated by global::is-signup-ingest, except
- * `stats` which is admin-JWT gated):
+ * Signup captures NAME, EMAIL and REGISTRANT TYPE only, and every registrant
+ * must confirm their email address before they reach the community.
  *
- *   POST /community-signups/track    — a visitor clicked a "Join the
- *                                      Community" CTA. Creates a `Clicked`
- *                                      row. This is the number the business
- *                                      actually asked for, and it is
- *                                      recorded server-side so it does NOT
- *                                      depend on cookie consent or JS.
- *   POST /community-signups/submit   — the visitor gave us their details.
- *                                      Upgrades the row to `Submitted`.
- *   POST /community-signups/redirect — handoff to Mighty Networks happened.
- *   GET  /community-signups/stats    — admin-only funnel numbers.
+ * Routes (all token-gated by global::is-signup-ingest):
+ *   POST /community/track    — a visitor clicked a "Join the Community" CTA.
+ *                              Creates a `Clicked` row. Recorded server-side,
+ *                              so it does NOT depend on cookie consent or JS.
+ *   POST /community/submit   — details given. Row → `Submitted`, verification
+ *                              email sent.
+ *   POST /community/verify   — the emailed token is presented. Row → `Verified`.
+ *   POST /community/resend   — re-send the verification email (capped).
+ *   POST /community/redirect — handoff to Mighty Networks happened.
+ *   GET  /community/stats    — aggregate funnel numbers, no PII.
  *
- * The core CRUD verbs are additionally guarded by requireAdmin() below, so
- * even a mis-seeded users-permissions role cannot read the PII.
+ * The core CRUD verbs are additionally guarded by requireAdmin(), so even a
+ * mis-seeded users-permissions role cannot read the PII.
  *
- * Privacy: raw IP is never stored (salted hash only, same helper the
- * analytics module uses). Every identity attribute is `private` in the
- * schema, so it is excluded from content-API responses.
+ * Privacy: the raw IP is never stored (salted hash only, same helper the
+ * analytics module uses), and the verification token is stored only as a
+ * SHA-256 hash.
  */
 import { factories } from '@strapi/strapi';
 import { clientIpFrom, hashIp } from '../../../utils/analytics/ip';
 import { parseUa } from '../../../utils/analytics/ua';
 import { allow } from '../../../utils/analytics/rate-limit';
 import { sanitizeClick, sanitizeSignup } from '../../../utils/community/validate';
-import { sanitizeProfile, scoreCompleteness } from '../../../utils/community/profile';
-import { isPiiEncryptionConfigured } from '../../../utils/community/crypto';
-import { randomBytes } from 'crypto';
 import {
-  hashPassword,
-  isPasswordEnabled,
-  passwordProblem,
-} from '../../../utils/community/password';
+  newToken,
+  hashToken,
+  tokenMatches,
+  expiryFrom,
+  verificationEmail,
+  MAX_SENDS,
+} from '../../../utils/community/verification';
 
 const UID = 'api::community-signup.community-signup';
 
@@ -51,14 +51,9 @@ function ipSalt(): string {
 
 /**
  * Drop null/undefined/'' keys so an UPDATE can never erase data we already
- * hold. A visitor who comes back and submits the form without re-typing
- * their country must not have the country we captured last time wiped —
- * and the attribution captured at click time (source, utm, landingPath)
- * must survive a submit payload that doesn't repeat it.
- *
- * Booleans and explicit lifecycle fields are applied separately by the
- * caller, because `false` is a meaningful value (marketing opt-OUT) and
- * would be stripped by a truthiness check.
+ * hold — notably the attribution captured at click time, which the submit
+ * payload does not repeat. Booleans and lifecycle fields are applied
+ * separately by the caller, because `false` is meaningful.
  */
 function keepExisting<T extends Record<string, unknown>>(obj: T): Partial<T> {
   const out: Record<string, unknown> = {};
@@ -82,9 +77,49 @@ function enrich(ctx: any) {
   };
 }
 
+function siteBase(): string {
+  return (process.env.FRONTEND_BASE_URL || 'https://inspireafricans.com').replace(/\/+$/, '');
+}
+
+/**
+ * Send the verification email. Returns whether it was accepted for delivery.
+ *
+ * NOT fire-and-forget, unlike the form-submission notification: this email is
+ * the only route to the community, so a silent failure would strand the
+ * registrant forever. The caller reports the outcome so the website can tell
+ * the visitor to try again rather than showing "check your inbox" for an
+ * email that was never sent.
+ */
+async function sendVerification(
+  strapi: any,
+  row: { email: string; firstName: string | null },
+  token: string
+): Promise<boolean> {
+  const verifyUrl = `${siteBase()}/join/verify?token=${encodeURIComponent(token)}`;
+  const mail = verificationEmail({
+    firstName: row.firstName,
+    verifyUrl,
+    siteName: 'INSPIRE AFRICA',
+  });
+  try {
+    await strapi.plugin('email').service('email').send({
+      to: row.email,
+      subject: mail.subject,
+      text: mail.text,
+      html: mail.html,
+    });
+    return true;
+  } catch (err) {
+    strapi.log.error(
+      `[community-signup] verification email failed: ${(err as Error).message}`
+    );
+    return false;
+  }
+}
+
 export default factories.createCoreController(UID, ({ strapi }) => ({
   /* ------------------------------------------------------------------ *
-   * POST /community-signups/track
+   * POST /community/track
    * ------------------------------------------------------------------ */
   async track(ctx: any) {
     let click;
@@ -98,7 +133,6 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
 
     const { ipHash, userAgent, deviceType, botScore } = enrich(ctx);
 
-    // Tighter than analytics: this route writes a row per call.
     if (ipHash && !allow(`signup-track:${ipHash}`, 30, 15)) {
       ctx.status = 429;
       ctx.body = { error: 'rate_limited' };
@@ -160,7 +194,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   },
 
   /* ------------------------------------------------------------------ *
-   * POST /community-signups/submit
+   * POST /community/submit
    * ------------------------------------------------------------------ */
   async submit(ctx: any) {
     let signup;
@@ -183,9 +217,9 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const repo = strapi.db.query(UID);
     const now = new Date();
 
-    // Honeypot: a hidden input a human never sees and never fills.
-    // Record it as Spam (so we can measure bot pressure) and return the
-    // SAME success shape a human gets — never tell a bot it was caught.
+    // Honeypot: a hidden input a human never sees and never fills. Record it
+    // as Spam and return the SAME shape a human gets — never tell a bot it
+    // was caught, and never send it an email.
     if (signup.trap) {
       try {
         await repo.create({
@@ -205,30 +239,14 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         /* a spam row we failed to write is not worth an error path */
       }
       ctx.status = 200;
-      ctx.body = { ok: true };
+      ctx.body = { ok: true, verificationSent: true };
       return;
     }
 
-    let passwordHash: string | null = null;
-    if (isPasswordEnabled() && signup.password) {
-      const problem = passwordProblem(signup.password);
-      if (problem) {
-        ctx.status = 400;
-        ctx.body = { error: problem, field: 'password' };
-        return;
-      }
-      passwordHash = hashPassword(signup.password);
-    }
-
-    // Nullable fields go through keepExisting() so a sparse resubmission
-    // never erases what we already captured (notably the click-time
-    // attribution, which the submit payload does not repeat).
     const optional = keepExisting({
       email: signup.email,
       firstName: signup.firstName,
       lastName: signup.lastName,
-      phone: signup.phone,
-      country: signup.country,
       source: signup.source,
       utmSource: signup.utmSource,
       utmMedium: signup.utmMedium,
@@ -237,10 +255,9 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       landingPath: signup.landingPath,
       ipHash,
       userAgent,
-      passwordHash,
     });
 
-    // Always applied: booleans (false is meaningful), lifecycle, telemetry.
+    const token = newToken();
     const data: Record<string, unknown> = {
       ...optional,
       status: 'Submitted',
@@ -251,69 +268,68 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       submittedAt: now,
       deviceType,
       botScore,
+      emailVerified: false,
+      verificationTokenHash: hashToken(token),
+      verificationSentAt: now,
+      verificationExpiresAt: expiryFrom(now),
     };
 
     try {
-      // Resolve by email first — one lead per person, however many times
-      // they come back. Done with an explicit lookup rather than a unique
-      // index so a repeat submission is an UPDATE, not a 500 the visitor
-      // sees. Deliberately returns the same response either way: telling
-      // an unauthenticated caller "that email already exists" is account
-      // enumeration.
+      // One lead per email, resolved by lookup rather than a unique index so
+      // a repeat submission is an UPDATE and not a 500 the visitor sees. The
+      // response is identical either way: telling an unauthenticated caller
+      // "that email already exists" is account enumeration.
       const byEmail = await repo.findOne({ where: { email: signup.email } });
       const byClick = await repo.findOne({ where: { clickId: signup.clickId } });
+      const target = byEmail || byClick;
 
-      if (byEmail) {
+      // Someone who already verified should not be reset to unverified by
+      // filling the form in again.
+      const alreadyVerified = !!target?.emailVerified;
+
+      if (target) {
         await repo.update({
-          where: { id: byEmail.id },
+          where: { id: target.id },
           data: {
             ...data,
-            // Don't regress a confirmed member back to Submitted.
-            status:
-              byEmail.status === 'MemberConfirmed' ? 'MemberConfirmed' : 'Submitted',
-            attempts: (byEmail.attempts || 1) + 1,
-            // First touch wins for attribution: the campaign that actually
-            // earned this lead is the one that brought them in the first
-            // time, not whichever page they happened to resubmit from.
-            source: byEmail.source ?? signup.source,
-            utmSource: byEmail.utmSource ?? signup.utmSource,
-            utmMedium: byEmail.utmMedium ?? signup.utmMedium,
-            utmCampaign: byEmail.utmCampaign ?? signup.utmCampaign,
-            referrerHost: byEmail.referrerHost ?? signup.referrerHost,
-            landingPath: byEmail.landingPath ?? signup.landingPath,
-            clickedAt: byEmail.clickedAt ?? now,
+            status: alreadyVerified ? target.status : 'Submitted',
+            emailVerified: alreadyVerified,
+            emailVerifiedAt: alreadyVerified ? target.emailVerifiedAt : null,
+            attempts: (target.attempts || 1) + 1,
+            // First touch wins for attribution.
+            source: target.source ?? signup.source,
+            utmSource: target.utmSource ?? signup.utmSource,
+            utmMedium: target.utmMedium ?? signup.utmMedium,
+            utmCampaign: target.utmCampaign ?? signup.utmCampaign,
+            clickedAt: target.clickedAt ?? now,
+            verificationSendCount: (target.verificationSendCount || 0) + 1,
           },
         });
-        // The click row this visit created is now redundant.
-        if (byClick && byClick.id !== byEmail.id) {
-          await repo.update({
-            where: { id: byClick.id },
-            data: { status: 'Duplicate' },
-          });
+        if (byEmail && byClick && byClick.id !== byEmail.id) {
+          await repo.update({ where: { id: byClick.id }, data: { status: 'Duplicate' } });
         }
-        ctx.status = 200;
-        ctx.body = { ok: true, clickId: byEmail.clickId };
-        return;
-      }
-
-      if (byClick) {
-        await repo.update({
-          where: { id: byClick.id },
-          data: { ...data, clickedAt: byClick.clickedAt ?? now },
+      } else {
+        await repo.create({
+          data: { ...data, clickId: signup.clickId, clickedAt: now, attempts: 1, verificationSendCount: 1 },
         });
-        ctx.status = 200;
-        ctx.body = { ok: true, clickId: byClick.clickId };
-        return;
       }
 
-      await repo.create({
-        data: { ...data, clickId: signup.clickId, clickedAt: now, attempts: 1 },
-      });
+      const sent = alreadyVerified
+        ? true
+        : await sendVerification(
+            strapi,
+            { email: signup.email, firstName: signup.firstName },
+            token
+          );
+
       ctx.status = 200;
-      ctx.body = { ok: true, clickId: signup.clickId };
+      ctx.body = {
+        ok: true,
+        clickId: (target || {}).clickId || signup.clickId,
+        alreadyVerified,
+        verificationSent: sent,
+      };
     } catch (err) {
-      // Unlike analytics, we do NOT silently swallow: the caller decides
-      // whether to warn the visitor. We still never log the payload.
       strapi.log.error(
         `[community-signup.submit] persist failed: ${(err as Error).message}`
       );
@@ -323,247 +339,138 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   },
 
   /* ------------------------------------------------------------------ *
-   * POST /community/profile
-   *
-   * Wizard steps 2+ (Andrew items 1-6, 8). Step 1 already wrote a
-   * `Submitted` lead, so everything here is additive: a visitor who
-   * abandons at step 3 is still a captured lead, not a lost one.
-   *
-   * Identified by `resumeToken` (issued on first profile save) or by
-   * clickId. Deliberately NOT by email alone — that would let anyone who
-   * knows an address overwrite that person's profile.
+   * POST /community/verify
    * ------------------------------------------------------------------ */
-  async profile(ctx: any) {
-    // Fail closed: identity numbers must never land in the DB unencrypted.
-    if (!isPiiEncryptionConfigured()) {
-      strapi.log.error('[community-signup.profile] COMMUNITY_PII_KEY not configured — refusing profile writes.');
-      ctx.status = 503;
-      ctx.body = { error: 'profile_capture_unavailable' };
-      return;
-    }
-
-    const clickId = typeof ctx.request.body?.clickId === 'string'
-      ? ctx.request.body.clickId.slice(0, 64) : null;
-    const resumeToken = typeof ctx.request.body?.resumeToken === 'string'
-      ? ctx.request.body.resumeToken.slice(0, 64) : null;
-    if (!clickId && !resumeToken) {
+  async verify(ctx: any) {
+    const token = typeof ctx.request.body?.token === 'string'
+      ? ctx.request.body.token.slice(0, 128)
+      : null;
+    if (!token) {
       ctx.status = 400;
-      ctx.body = { error: 'clickId or resumeToken is required' };
-      return;
-    }
-
-    let clean;
-    try {
-      clean = sanitizeProfile(ctx.request.body);
-    } catch (err) {
-      ctx.status = 400;
-      ctx.body = { error: (err as Error).message };
+      ctx.body = { error: 'token_required' };
       return;
     }
 
     const { ipHash } = enrich(ctx);
-    if (ipHash && !allow(`signup-profile:${ipHash}`, 30, 15)) {
+    // Tight: this endpoint is the only thing standing between a guessed token
+    // and a verified account.
+    if (ipHash && !allow(`signup-verify:${ipHash}`, 20, 10)) {
       ctx.status = 429;
       ctx.body = { error: 'rate_limited' };
       return;
     }
 
-    const step = Math.min(6, Math.max(1, Number(ctx.request.body?.step) || 2));
     const repo = strapi.db.query(UID);
     const now = new Date();
 
     try {
-      // Components MUST be populated here. scoreCompleteness() runs against
-      // the merged row, so an unpopulated fetch would count only the lists in
-      // the current request and silently under-report everything saved in
-      // earlier steps — the score would go DOWN as the profile filled up.
-      const populate = [
-        'identityDocuments',
-        'contactPoints',
-        'qualifications',
-        'workExperiences',
-        'languageCompetencies',
-        'characterReferences',
-        'organisation',
-        'hiringNeeds',
-        'healthClearances',
-        'diseaseScreenings',
-      ];
-      // clickId FIRST, resumeToken second — and fall back to the other if the
-      // first misses.
-      //
-      // Preferring the token was a real bug: the browser keeps the resume
-      // cookie for 30 days, so anyone starting a second signup, or returning
-      // after their first was purged by the retention job, was looked up by a
-      // token that no longer resolves and got a permanent 404. They could
-      // reach the wizard and fill it in, but nothing would ever save.
-      // The clickId is the explicit, current identity; the token is only a
-      // convenience for someone returning without one.
-      let row = clickId ? await repo.findOne({ where: { clickId }, populate }) : null;
-      let resolvedByToken = false;
-      if (!row && resumeToken) {
-        row = await repo.findOne({ where: { resumeToken }, populate });
-        resolvedByToken = !!row;
-      }
-
-      if (!row) {
+      // Look up BY HASH — the plaintext token is never stored, so this is the
+      // only way to find the row, and it is an indexed exact match.
+      const row = await repo.findOne({ where: { verificationTokenHash: hashToken(token) } });
+      if (!row || !tokenMatches(token, row.verificationTokenHash)) {
         ctx.status = 404;
-        ctx.body = { error: 'signup_not_found' };
+        ctx.body = { error: 'invalid_token' };
         return;
       }
-      // Expiry only matters when the TOKEN is what identified the row. If we
-      // resolved by clickId the visitor is in an active session and a stale
-      // cookie riding along is irrelevant.
-      if (resolvedByToken && row.resumeTokenExpiresAt && new Date(row.resumeTokenExpiresAt) < now) {
+      if (row.emailVerified) {
+        // Idempotent: clicking the link twice is a success, not an error.
+        ctx.status = 200;
+        ctx.body = { ok: true, alreadyVerified: true, clickId: row.clickId };
+        return;
+      }
+      if (row.verificationExpiresAt && new Date(row.verificationExpiresAt) < now) {
         ctx.status = 410;
-        ctx.body = { error: 'resume_token_expired' };
+        ctx.body = { error: 'token_expired', clickId: row.clickId };
         return;
       }
 
-      // Lists are REPLACED per step, not appended — the wizard always submits
-      // the full current list for the step being saved, so appending would
-      // duplicate every entry on each re-save. Untouched lists are omitted by
-      // the client and preserved by keepExisting() below.
-      const lists = keepExisting({
-        identityDocuments: clean.identityDocuments.length ? clean.identityDocuments : null,
-        contactPoints: clean.contactPoints.length ? clean.contactPoints : null,
-        qualifications: clean.qualifications.length ? clean.qualifications : null,
-        workExperiences: clean.workExperiences.length ? clean.workExperiences : null,
-        languageCompetencies: clean.languageCompetencies.length ? clean.languageCompetencies : null,
-        characterReferences: clean.characterReferences.length ? clean.characterReferences : null,
-        hiringNeeds: clean.hiringNeeds.length ? clean.hiringNeeds : null,
-        healthClearances: clean.healthClearances.length ? clean.healthClearances : null,
-        diseaseScreenings: clean.diseaseScreenings.length ? clean.diseaseScreenings : null,
-        organisation: clean.organisation,
-      });
-
-      const scalars = keepExisting({
-        otherNames: clean.otherNames,
-        dateOfBirth: clean.dateOfBirth,
-        residentialAddress: clean.residentialAddress,
-        profileImage: clean.profileImage,
-        cvFile: clean.cvFile,
-      });
-
-      // Consent is a boolean, so keepExisting() would strip a `false`. It is
-      // also one-way by design: once given it stays recorded with its
-      // timestamp, and withdrawal is handled as an erasure request rather
-      // than by silently flipping the flag back.
-      const consent = clean.consentSpecialCategory
-        ? { consentSpecialCategory: true, consentSpecialCategoryAt: now }
-        : {};
-
-      const token = row.resumeToken || randomBytes(24).toString('hex');
-      const merged = { ...row, ...scalars, ...lists, ...consent };
-
-      // Document Service, NOT strapi.db.query — the query engine operates at
-      // the database layer and does not know how to write component arrays.
-      // The rest of this controller uses db.query because it only touches
-      // scalars; this handler is the one that writes components.
-      await strapi.documents(UID).update({
-        documentId: row.documentId,
+      await repo.update({
+        where: { id: row.id },
         data: {
-          ...scalars,
-          ...lists,
-          ...consent,
-          profileStep: Math.max(row.profileStep || 1, step),
-          profileCompleteness: scoreCompleteness(merged),
-          profileUpdatedAt: now,
-          resumeToken: token,
-          // 30 days: long enough to come back after a job or a data bundle,
-          // short enough that a leaked link does not stay live indefinitely.
-          resumeTokenExpiresAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
-        } as any,
+          emailVerified: true,
+          emailVerifiedAt: now,
+          status: row.status === 'RedirectedToMN' ? row.status : 'Verified',
+          // The token hash is deliberately KEPT, not burned. People re-open
+          // confirmation emails, and a second click should take them to the
+          // community rather than "we couldn't match that link". The
+          // emailVerified check above makes the repeat a no-op, so replay
+          // achieves nothing an attacker would want — the address is already
+          // confirmed either way.
+        },
       });
 
       ctx.status = 200;
-      ctx.body = {
-        ok: true,
-        resumeToken: token,
-        profileStep: Math.max(row.profileStep || 1, step),
-        profileCompleteness: scoreCompleteness(merged),
-      };
+      ctx.body = { ok: true, alreadyVerified: false, clickId: row.clickId };
     } catch (err) {
-      strapi.log.error(`[community-signup.profile] persist failed: ${(err as Error).message}`);
+      strapi.log.error(`[community-signup.verify] ${(err as Error).message}`);
       ctx.status = 500;
-      ctx.body = { error: 'persist_failed' };
+      ctx.body = { error: 'verify_failed' };
     }
   },
 
   /* ------------------------------------------------------------------ *
-   * POST /community/upload
-   *
-   * Signup documents: CV / certificate PDFs, and photos of identity
-   * documents. Deliberately NOT Strapi's core /api/upload, which would
-   * need a second API token with upload permission — one more credential
-   * to issue, rotate and leak. This keeps uploads behind the same shared
-   * secret as the signup writes.
-   *
-   * Limits are enforced HERE as well as in the Next.js layer, because the
-   * Next.js check protects the user experience while this one protects the
-   * disk. They are small on purpose: this VPS is shared with several other
-   * production applications.
+   * POST /community/resend
    * ------------------------------------------------------------------ */
-  async upload(ctx: any) {
-    const LIMITS: Record<string, number> = {
-      profileImage: 500 * 1024,
-      idImage: 1024 * 1024,
-      document: 1536 * 1024,
-    };
-    const IMAGES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
-    const ALLOWED: Record<string, string[]> = {
-      profileImage: IMAGES,
-      idImage: IMAGES,
-      document: ['application/pdf', ...IMAGES],
-    };
+  async resend(ctx: any) {
+    const clickId = typeof ctx.request.body?.clickId === 'string'
+      ? ctx.request.body.clickId.slice(0, 64)
+      : null;
+    if (!clickId) {
+      ctx.status = 400;
+      ctx.body = { error: 'clickId_required' };
+      return;
+    }
 
     const { ipHash } = enrich(ctx);
-    // Uploads are far more expensive than JSON writes — rate-limit harder.
-    if (ipHash && !allow(`signup-upload:${ipHash}`, 20, 10)) {
+    if (ipHash && !allow(`signup-resend:${ipHash}`, 5, 3)) {
       ctx.status = 429;
       ctx.body = { error: 'rate_limited' };
       return;
     }
 
-    const purpose = String(ctx.request.body?.purpose || 'document');
-    const limit = LIMITS[purpose] ?? LIMITS.document;
-    const allowedTypes = ALLOWED[purpose] ?? ALLOWED.document;
-
-    const files = ctx.request.files?.files;
-    const file = Array.isArray(files) ? files[0] : files;
-    if (!file) {
-      ctx.status = 400;
-      ctx.body = { error: 'no_file' };
-      return;
-    }
-    if (file.size > limit) {
-      ctx.status = 413;
-      ctx.body = { error: 'too_large', limit };
-      return;
-    }
-    if (file.mimetype && !allowedTypes.includes(file.mimetype)) {
-      ctx.status = 415;
-      ctx.body = { error: 'wrong_type' };
-      return;
-    }
+    const repo = strapi.db.query(UID);
+    const now = new Date();
 
     try {
-      const uploaded = await strapi
-        .plugin('upload')
-        .service('upload')
-        .upload({ data: {}, files: file });
-      const first = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+      const row = await repo.findOne({ where: { clickId } });
+      // Always answer the same way. A caller must not be able to probe which
+      // clickIds exist, or which addresses are already verified.
+      const generic = { ok: true };
+
+      if (!row || !row.email || row.emailVerified) {
+        ctx.status = 200;
+        ctx.body = generic;
+        return;
+      }
+      if ((row.verificationSendCount || 0) >= MAX_SENDS) {
+        ctx.status = 200;
+        ctx.body = { ...generic, capped: true };
+        return;
+      }
+
+      const token = newToken();
+      await repo.update({
+        where: { id: row.id },
+        data: {
+          verificationTokenHash: hashToken(token),
+          verificationSentAt: now,
+          verificationExpiresAt: expiryFrom(now),
+          verificationSendCount: (row.verificationSendCount || 0) + 1,
+        },
+      });
+      await sendVerification(strapi, { email: row.email, firstName: row.firstName }, token);
+
       ctx.status = 200;
-      ctx.body = { id: first?.id, name: first?.name, size: first?.size };
+      ctx.body = generic;
     } catch (err) {
-      strapi.log.error(`[community-signup.upload] ${(err as Error).message}`);
-      ctx.status = 500;
-      ctx.body = { error: 'upload_failed' };
+      strapi.log.error(`[community-signup.resend] ${(err as Error).message}`);
+      ctx.status = 200;
+      ctx.body = { ok: true };
     }
   },
 
   /* ------------------------------------------------------------------ *
-   * POST /community-signups/redirect
+   * POST /community/redirect
    * ------------------------------------------------------------------ */
   async redirect(ctx: any) {
     const clickId =
@@ -592,31 +499,28 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
   },
 
   /* ------------------------------------------------------------------ *
-   * GET /community-signups/stats?days=30   (admin only)
+   * GET /community/stats?days=30
    * ------------------------------------------------------------------ */
   async stats(ctx: any) {
-    // No requireAdmin() here: the route is `auth: false` + is-signup-ingest,
-    // so ctx.state.user is never populated and a role check would reject
-    // every caller. The shared secret IS the gate. Safe because the select
-    // below returns aggregate, non-identifying columns only — keep it that
-    // way; adding email/phone to the select would leak PII past this route.
+    // No requireAdmin(): the route is `auth: false` + is-signup-ingest, so
+    // ctx.state.user is never populated and a role check would reject every
+    // caller. The shared secret IS the gate. Safe because the select below
+    // returns aggregate, non-identifying columns only — keep it that way.
     const days = Math.min(365, Math.max(1, Number(ctx.query.days) || 30));
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const repo = strapi.db.query(UID);
 
-    // Volumes here are leads, not pageviews — on-demand aggregation is
-    // correct at this scale. If this ever exceeds ~100k rows, move it to a
-    // nightly rollup like analytics-daily-rollup.
     const rows = await repo.findMany({
       where: { clickedAt: { $gte: since } },
-      select: ['status', 'source', 'utmCampaign', 'clickedAt', 'botScore'],
+      select: ['status', 'source', 'utmCampaign', 'registrantType', 'clickedAt', 'botScore', 'emailVerified'],
       limit: 100000,
     });
 
     const human = rows.filter((r: any) => (r.botScore ?? 0) < 1 && r.status !== 'Spam');
     const captured = human.filter((r: any) =>
-      ['Submitted', 'RedirectedToMN', 'MemberConfirmed'].includes(r.status)
+      ['Submitted', 'Verified', 'RedirectedToMN', 'MemberConfirmed'].includes(r.status)
     );
+    const verified = human.filter((r: any) => r.emailVerified);
 
     const by = (key: string, list: any[]) =>
       list.reduce((acc: Record<string, number>, r: any) => {
@@ -629,8 +533,12 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       windowDays: days,
       clicks: human.length,
       captured: captured.length,
+      verified: verified.length,
       conversionRate: human.length
         ? Number(((captured.length / human.length) * 100).toFixed(1))
+        : 0,
+      verificationRate: captured.length
+        ? Number(((verified.length / captured.length) * 100).toFixed(1))
         : 0,
       redirected: human.filter((r: any) =>
         ['RedirectedToMN', 'MemberConfirmed'].includes(r.status)
@@ -639,6 +547,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       botsExcluded: rows.length - human.length,
       clicksBySource: by('source', human),
       capturedBySource: by('source', captured),
+      capturedByType: by('registrantType', captured),
       capturedByCampaign: by('utmCampaign', captured),
     };
   },
