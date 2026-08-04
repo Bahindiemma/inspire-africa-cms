@@ -59,6 +59,11 @@ export const QUAL_LEVELS = ['certificate', 'diploma', 'bachelor', 'master', 'doc
 export const CEFR = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'native'] as const;
 export const FRAMEWORKS = ['CEFR', 'IELTS', 'TOEFL', 'other'] as const;
 
+export const ORG_KINDS = ['employer', 'ministry', 'agency', 'public_employment_service', 'recruiter', 'training_provider', 'other'] as const;
+export const SIZE_BANDS = ['1-9', '10-49', '50-249', '250-999', '1000+'] as const;
+export const CLEARANCE_KINDS = ['health_certificate', 'police_clearance'] as const;
+export const SCREENING_RESULTS = ['negative', 'positive', 'immune', 'vaccinated', 'inconclusive', 'not_tested'] as const;
+
 export interface CleanProfile {
   otherNames: string | null;
   dateOfBirth: string | null;
@@ -69,6 +74,20 @@ export interface CleanProfile {
   workExperiences: any[];
   languageCompetencies: any[];
   characterReferences: any[];
+  organisation: any | null;
+  hiringNeeds: any[];
+  /** Article 9 / Article 10 — only populated when consent was given. */
+  healthClearances: any[];
+  diseaseScreenings: any[];
+  consentSpecialCategory: boolean;
+  profileImage: number | null;
+  cvFile: number | null;
+}
+
+/** Media ids arrive as numbers from the upload endpoint. */
+function mediaId(v: unknown): number | null {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isInteger(n) && n > 0 ? n : null;
 }
 
 export function sanitizeProfile(body: any): CleanProfile {
@@ -88,6 +107,7 @@ export function sanitizeProfile(body: any): CleanProfile {
         issuingCountry: str(d?.issuingCountry, 80),
         issuedOn: date(d?.issuedOn),
         expiresOn: date(d?.expiresOn),
+        documentImage: mediaId(d?.documentImage),
         verificationStatus: VERIFICATION,
       };
     })
@@ -124,6 +144,7 @@ export function sanitizeProfile(body: any): CleanProfile {
         awardedOn: date(q?.awardedOn),
         expiresOn: date(q?.expiresOn),
         grade: str(q?.grade, 60),
+        certificateFile: mediaId(q?.certificateFile),
         verificationStatus: VERIFICATION,
       };
     })
@@ -185,6 +206,88 @@ export function sanitizeProfile(body: any): CleanProfile {
     })
     .filter(Boolean);
 
+  // ---- Employer / government registrants -------------------------------
+  const o = body.organisation;
+  const organisation = o && str(o.name)
+    ? {
+        name: str(o.name)!,
+        kind: oneOf(o.kind, ORG_KINDS),
+        registrationNumber: str(o.registrationNumber, 120),
+        country: str(o.country, 80),
+        sector: str(o.sector, 120),
+        sizeBand: oneOf(o.sizeBand, SIZE_BANDS),
+        website: str(o.website, 255),
+        contactJobTitle: str(o.contactJobTitle, 160),
+        department: str(o.department),
+        remit: str(o.remit, LIMITS.maxText),
+        verificationStatus: VERIFICATION,
+      }
+    : null;
+
+  const hiringNeeds = list(body.hiringNeeds)
+    .map((h: any) => {
+      const roleTitle = str(h?.roleTitle, 160);
+      if (!roleTitle) return null;
+      return {
+        roleTitle,
+        occupationCode: str(h?.occupationCode, LIMITS.maxCode),
+        sector: str(h?.sector, 120),
+        vacancies: Number.isFinite(Number(h?.vacancies))
+          ? Math.max(0, Math.min(100000, Math.round(Number(h.vacancies))))
+          : null,
+        destinationCountry: str(h?.destinationCountry, 80),
+        startFrom: date(h?.startFrom),
+        notes: str(h?.notes, LIMITS.maxText),
+      };
+    })
+    .filter(Boolean);
+
+  // ---- Andrew items 7 and 9 — SPECIAL CATEGORY -------------------------
+  // GDPR Article 9 (health) and Article 10 (criminal offences). These are
+  // accepted ONLY when the registrant ticked the separate explicit-consent
+  // box. Without it the arrays are dropped entirely rather than stored and
+  // sorted out later — unlawfully-obtained special-category data is not
+  // something you can fix retrospectively.
+  const consentSpecialCategory = bool(body.consentSpecialCategory);
+
+  const healthClearances = !consentSpecialCategory
+    ? []
+    : list(body.healthClearances)
+        .map((h: any) => {
+          const kind = oneOf(h?.kind, CLEARANCE_KINDS);
+          if (!kind) return null;
+          return {
+            kind,
+            reference: str(h?.reference, 120),
+            issuingAuthority: str(h?.issuingAuthority),
+            issuedOn: date(h?.issuedOn),
+            expiresOn: date(h?.expiresOn),
+            testsCovered: str(h?.testsCovered, LIMITS.maxText),
+            documentFile: mediaId(h?.documentFile),
+            verificationStatus: VERIFICATION,
+          };
+        })
+        .filter(Boolean);
+
+  const diseaseScreenings = !consentSpecialCategory
+    ? []
+    : list(body.diseaseScreenings)
+        .map((d: any) => {
+          const disease = str(d?.disease, 120);
+          if (!disease) return null;
+          return {
+            disease,
+            result: oneOf(d?.result, SCREENING_RESULTS),
+            testedOn: date(d?.testedOn),
+            expiresOn: date(d?.expiresOn),
+            issuingAuthority: str(d?.issuingAuthority),
+            certificateNumber: str(d?.certificateNumber, 120),
+            documentFile: mediaId(d?.documentFile),
+            verificationStatus: VERIFICATION,
+          };
+        })
+        .filter(Boolean);
+
   return {
     otherNames: str(body.otherNames, 120),
     dateOfBirth: date(body.dateOfBirth),
@@ -195,28 +298,67 @@ export function sanitizeProfile(body: any): CleanProfile {
     workExperiences,
     languageCompetencies,
     characterReferences,
+    organisation,
+    hiringNeeds,
+    healthClearances,
+    diseaseScreenings,
+    consentSpecialCategory,
+    profileImage: mediaId(body.profileImage),
+    cvFile: mediaId(body.cvFile),
   };
 }
 
 /**
  * 0-100 completeness, so partial profiles are visible and chaseable rather
- * than silently half-finished. Step 1 (the lead itself) is deliberately
- * worth 40 — a name, email and phone IS most of the commercial value, and a
- * score that read 8% for a perfectly good lead would be misleading.
+ * than silently half-finished.
+ *
+ * ROLE-AWARE. Scoring an employer against qualifications and passports would
+ * permanently cap them at ~40% and make the number useless for the very
+ * follow-up it exists to drive — an employer who has given us their company,
+ * their role and what they are hiring for IS complete.
+ *
+ * Step 1 is deliberately worth 40 across every role: a name, email and phone
+ * is most of the commercial value, and a score reading 8% for a perfectly
+ * good lead would be actively misleading.
+ *
+ * Special-category items (health, police) are excluded from scoring on
+ * purpose — nobody should be nudged toward supplying them to reach 100%.
  */
 export function scoreCompleteness(row: any): number {
-  let score = 0;
-  if (row.firstName && row.lastName) score += 15;
-  if (row.email) score += 15;
-  if (row.phone) score += 10;
-  if (row.dateOfBirth) score += 5;
-  if (row.residentialAddress) score += 5;
-  if (len(row.identityDocuments)) score += 15;
-  if (len(row.qualifications)) score += 15;
-  if (len(row.workExperiences)) score += 10;
-  if (len(row.languageCompetencies)) score += 5;
-  if (len(row.characterReferences)) score += 5;
-  return Math.min(100, score);
+  const base =
+    (row.firstName && row.lastName ? 15 : 0) +
+    (row.email ? 15 : 0) +
+    (row.phone ? 10 : 0);
+
+  const type = row.registrantType || 'jobseeker';
+
+  if (type === 'employer' || type === 'government') {
+    const org = row.organisation;
+    let s = base;
+    if (org?.name) s += 20;
+    if (org?.country) s += 5;
+    if (org?.contactJobTitle) s += 10;
+    if (type === 'employer') {
+      if (org?.sector) s += 5;
+      if (len(row.hiringNeeds)) s += 20;
+    } else {
+      if (org?.department) s += 10;
+      if (org?.remit) s += 15;
+    }
+    if (len(row.contactPoints)) s += 5;
+    return Math.min(100, s);
+  }
+
+  // jobseeker / other
+  let s = base;
+  if (row.dateOfBirth) s += 5;
+  if (row.residentialAddress) s += 5;
+  if (len(row.identityDocuments)) s += 15;
+  if (len(row.qualifications)) s += 15;
+  if (len(row.workExperiences)) s += 10;
+  if (len(row.languageCompetencies)) s += 5;
+  if (len(row.characterReferences)) s += 5;
+  return Math.min(100, s);
 }
 
 function len(v: unknown): number {

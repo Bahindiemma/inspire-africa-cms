@@ -71,6 +71,64 @@
     "botScore": { "type": "float", "default": 0 },
     "notes": { "type": "text" },
 
+    "registrantType": {
+      "type": "enumeration",
+      "enum": ["jobseeker", "employer", "government", "other"],
+      "default": "jobseeker",
+      "required": true,
+      "description": "Andrew: 'everyone must pass, regardless of their status'. Chosen at step 1 — it decides which wizard steps are shown and, more importantly, which data we may lawfully ask for. An employer contact must never be asked for a passport or a TB result."
+    },
+    "consentSpecialCategory": {
+      "type": "boolean",
+      "default": false,
+      "description": "Explicit, SEPARATE consent for health and police-clearance data. GDPR Article 9(2)(a) requires this to be distinct from general terms acceptance — it is deliberately NOT covered by consentTerms."
+    },
+    "consentSpecialCategoryAt": { "type": "datetime" },
+
+    "profileImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"],
+      "private": true
+    },
+    "cvFile": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"],
+      "private": true
+    },
+    "supportingDocuments": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["files", "images"],
+      "private": true
+    },
+
+    "organisation": {
+      "type": "component",
+      "repeatable": false,
+      "component": "profile.organisation",
+      "private": true
+    },
+    "hiringNeeds": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.hiring-need",
+      "private": true
+    },
+    "healthClearances": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.health-clearance",
+      "private": true
+    },
+    "diseaseScreenings": {
+      "type": "component",
+      "repeatable": true,
+      "component": "profile.disease-screening",
+      "private": true
+    },
+
     "sourceOfName": {
       "type": "enumeration",
       "enum": ["self_selection", "bulk_upload", "staff_entry"],

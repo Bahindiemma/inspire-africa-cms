@@ -6,6 +6,18 @@
  * - users-permissions: JWT settings + Keycloak OIDC provider
  * - i18n:   en-GB default + fr-FR secondary example
  */
+/**
+ * Hard ceiling for ANY upload, in bytes.
+ *
+ * Signup documents are CV PDFs and ID photographs. At ~2 MB each and a few
+ * documents per registrant, 10,000 registrants is already tens of GB on a
+ * VPS whose disk is shared with several other production applications — so
+ * this is a storage-capacity limit, not a nicety. Per-type limits (smaller
+ * still) are enforced in the Next.js upload path before anything reaches
+ * Strapi; this is the backstop for everything else.
+ */
+const UPLOAD_CEILING_BYTES = 2 * 1024 * 1024;
+
 export default ({ env }: { env: any }) => {
   const mediaProvider = env('MEDIA_PROVIDER', 'local');
 
@@ -61,9 +73,17 @@ export default ({ env }: { env: any }) => {
       // Local disk — dev only. Don't ship to production.
       uploadConfig = {
         config: {
-          sizeLimit: 50 * 1024 * 1024,
+          sizeLimit: UPLOAD_CEILING_BYTES,
         },
       };
+  }
+
+  // Apply the same ceiling to the hosted providers. Signup documents are
+  // CV PDFs and ID photographs, not media assets — the old 50 MB limit was
+  // inherited from the marketing image library and would let a few hundred
+  // registrants fill the shared VPS disk.
+  if (uploadConfig?.config && uploadConfig.config.sizeLimit === undefined) {
+    uploadConfig.config.sizeLimit = UPLOAD_CEILING_BYTES;
   }
 
   return {

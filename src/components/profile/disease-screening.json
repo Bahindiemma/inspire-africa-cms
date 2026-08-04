@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_profile_disease_screenings",
+  "info": { "displayName": "Disease screening", "icon": "syringe", "description": "Andrew item 9. SPECIAL CATEGORY DATA (GDPR Article 9). Gated behind explicit consent; results are private and encrypted-at-application where free text." },
+  "options": {},
+  "attributes": {
+    "disease": { "type": "string", "required": true, "maxLength": 120 },
+    "result": { "type": "enumeration", "enum": ["negative", "positive", "immune", "vaccinated", "inconclusive", "not_tested"], "private": true },
+    "testedOn": { "type": "date" },
+    "expiresOn": { "type": "date" },
+    "issuingAuthority": { "type": "string", "maxLength": 200 },
+    "certificateNumber": { "type": "string", "maxLength": 120, "private": true },
+    "documentFile": { "type": "media", "multiple": false, "allowedTypes": ["files", "images"], "private": true },
+    "verificationStatus": { "type": "enumeration", "enum": ["self_declared", "submitted", "verified", "rejected", "expired"], "default": "self_declared" }
+  }
+}

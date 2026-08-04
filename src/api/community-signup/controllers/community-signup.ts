@@ -244,6 +244,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
     const data: Record<string, unknown> = {
       ...optional,
       status: 'Submitted',
+      registrantType: signup.registrantType,
       consentTerms: signup.consentTerms,
       consentMarketing: signup.consentMarketing,
       consentRecordedAt: now,
@@ -383,6 +384,10 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         'workExperiences',
         'languageCompetencies',
         'characterReferences',
+        'organisation',
+        'hiringNeeds',
+        'healthClearances',
+        'diseaseScreenings',
       ];
       const row = resumeToken
         ? await repo.findOne({ where: { resumeToken }, populate })
@@ -410,16 +415,30 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         workExperiences: clean.workExperiences.length ? clean.workExperiences : null,
         languageCompetencies: clean.languageCompetencies.length ? clean.languageCompetencies : null,
         characterReferences: clean.characterReferences.length ? clean.characterReferences : null,
+        hiringNeeds: clean.hiringNeeds.length ? clean.hiringNeeds : null,
+        healthClearances: clean.healthClearances.length ? clean.healthClearances : null,
+        diseaseScreenings: clean.diseaseScreenings.length ? clean.diseaseScreenings : null,
+        organisation: clean.organisation,
       });
 
       const scalars = keepExisting({
         otherNames: clean.otherNames,
         dateOfBirth: clean.dateOfBirth,
         residentialAddress: clean.residentialAddress,
+        profileImage: clean.profileImage,
+        cvFile: clean.cvFile,
       });
 
+      // Consent is a boolean, so keepExisting() would strip a `false`. It is
+      // also one-way by design: once given it stays recorded with its
+      // timestamp, and withdrawal is handled as an erasure request rather
+      // than by silently flipping the flag back.
+      const consent = clean.consentSpecialCategory
+        ? { consentSpecialCategory: true, consentSpecialCategoryAt: now }
+        : {};
+
       const token = row.resumeToken || randomBytes(24).toString('hex');
-      const merged = { ...row, ...scalars, ...lists };
+      const merged = { ...row, ...scalars, ...lists, ...consent };
 
       // Document Service, NOT strapi.db.query — the query engine operates at
       // the database layer and does not know how to write component arrays.
@@ -430,6 +449,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         data: {
           ...scalars,
           ...lists,
+          ...consent,
           profileStep: Math.max(row.profileStep || 1, step),
           profileCompleteness: scoreCompleteness(merged),
           profileUpdatedAt: now,
@@ -451,6 +471,78 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       strapi.log.error(`[community-signup.profile] persist failed: ${(err as Error).message}`);
       ctx.status = 500;
       ctx.body = { error: 'persist_failed' };
+    }
+  },
+
+  /* ------------------------------------------------------------------ *
+   * POST /community/upload
+   *
+   * Signup documents: CV / certificate PDFs, and photos of identity
+   * documents. Deliberately NOT Strapi's core /api/upload, which would
+   * need a second API token with upload permission — one more credential
+   * to issue, rotate and leak. This keeps uploads behind the same shared
+   * secret as the signup writes.
+   *
+   * Limits are enforced HERE as well as in the Next.js layer, because the
+   * Next.js check protects the user experience while this one protects the
+   * disk. They are small on purpose: this VPS is shared with several other
+   * production applications.
+   * ------------------------------------------------------------------ */
+  async upload(ctx: any) {
+    const LIMITS: Record<string, number> = {
+      profileImage: 500 * 1024,
+      idImage: 1024 * 1024,
+      document: 1536 * 1024,
+    };
+    const IMAGES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+    const ALLOWED: Record<string, string[]> = {
+      profileImage: IMAGES,
+      idImage: IMAGES,
+      document: ['application/pdf', ...IMAGES],
+    };
+
+    const { ipHash } = enrich(ctx);
+    // Uploads are far more expensive than JSON writes — rate-limit harder.
+    if (ipHash && !allow(`signup-upload:${ipHash}`, 20, 10)) {
+      ctx.status = 429;
+      ctx.body = { error: 'rate_limited' };
+      return;
+    }
+
+    const purpose = String(ctx.request.body?.purpose || 'document');
+    const limit = LIMITS[purpose] ?? LIMITS.document;
+    const allowedTypes = ALLOWED[purpose] ?? ALLOWED.document;
+
+    const files = ctx.request.files?.files;
+    const file = Array.isArray(files) ? files[0] : files;
+    if (!file) {
+      ctx.status = 400;
+      ctx.body = { error: 'no_file' };
+      return;
+    }
+    if (file.size > limit) {
+      ctx.status = 413;
+      ctx.body = { error: 'too_large', limit };
+      return;
+    }
+    if (file.mimetype && !allowedTypes.includes(file.mimetype)) {
+      ctx.status = 415;
+      ctx.body = { error: 'wrong_type' };
+      return;
+    }
+
+    try {
+      const uploaded = await strapi
+        .plugin('upload')
+        .service('upload')
+        .upload({ data: {}, files: file });
+      const first = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+      ctx.status = 200;
+      ctx.body = { id: first?.id, name: first?.name, size: first?.size };
+    } catch (err) {
+      strapi.log.error(`[community-signup.upload] ${(err as Error).message}`);
+      ctx.status = 500;
+      ctx.body = { error: 'upload_failed' };
     }
   },
 

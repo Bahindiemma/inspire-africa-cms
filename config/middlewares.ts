@@ -54,12 +54,15 @@ export default ({ env }: { env: any }) => [
   {
     name: 'strapi::body',
     config: {
-      // Allow JSON bodies up to 1 MB and form uploads up to 50 MB.
+      // JSON bodies up to 1 MB. File uploads are capped at 2 MB to match the
+      // upload plugin ceiling in config/plugins.ts — signup documents are CV
+      // PDFs and ID photos, and this disk is shared with other production
+      // apps. Raising one without the other silently reintroduces the risk.
       jsonLimit: '1mb',
       formLimit: '1mb',
       textLimit: '1mb',
       formidable: {
-        maxFileSize: 50 * 1024 * 1024,
+        maxFileSize: 2 * 1024 * 1024,
       },
     },
   },

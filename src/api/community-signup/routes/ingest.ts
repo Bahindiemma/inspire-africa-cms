@@ -31,6 +31,15 @@ export default {
       config: { auth: false, policies: ['global::is-signup-ingest'] },
     },
     {
+      // Signup documents (CV, certificates, ID photos). Multipart, so it does
+      // NOT go through the JSON body limit — see the formidable maxFileSize
+      // in config/middlewares.ts and the ceiling in config/plugins.ts.
+      method: 'POST',
+      path: '/community/upload',
+      handler: 'community-signup.upload',
+      config: { auth: false, policies: ['global::is-signup-ingest'] },
+    },
+    {
       // Wizard steps 2+ — Andrew items 1-6 and 8. Same shared-secret gate as
       // the other write routes; this one carries the most sensitive payload
       // on the site (identity documents), so it additionally refuses to run

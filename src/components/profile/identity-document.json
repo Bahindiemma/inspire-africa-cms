@@ -10,6 +10,7 @@
     "issuingCountry": { "type": "string", "maxLength": 80 },
     "issuedOn": { "type": "date" },
     "expiresOn": { "type": "date" },
+    "documentImage": { "type": "media", "multiple": false, "allowedTypes": ["images", "files"], "private": true },
     "verificationStatus": { "type": "enumeration", "enum": ["self_declared", "submitted", "verified", "rejected", "expired"], "default": "self_declared" }
   }
 }

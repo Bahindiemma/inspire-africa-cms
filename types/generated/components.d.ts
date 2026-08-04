@@ -275,6 +275,121 @@ export interface ProfileContactPoint extends Struct.ComponentSchema {
   };
 }
 
+export interface ProfileDiseaseScreening extends Struct.ComponentSchema {
+  collectionName: 'components_profile_disease_screenings';
+  info: {
+    description: 'Andrew item 9. SPECIAL CATEGORY DATA (GDPR Article 9). Gated behind explicit consent; results are private and encrypted-at-application where free text.';
+    displayName: 'Disease screening';
+    icon: 'syringe';
+  };
+  attributes: {
+    certificateNumber: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    disease: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    documentFile: Schema.Attribute.Media<'files' | 'images'> &
+      Schema.Attribute.Private;
+    expiresOn: Schema.Attribute.Date;
+    issuingAuthority: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    result: Schema.Attribute.Enumeration<
+      [
+        'negative',
+        'positive',
+        'immune',
+        'vaccinated',
+        'inconclusive',
+        'not_tested',
+      ]
+    > &
+      Schema.Attribute.Private;
+    testedOn: Schema.Attribute.Date;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['self_declared', 'submitted', 'verified', 'rejected', 'expired']
+    > &
+      Schema.Attribute.DefaultTo<'self_declared'>;
+  };
+}
+
+export interface ProfileHealthClearance extends Struct.ComponentSchema {
+  collectionName: 'components_profile_health_clearances';
+  info: {
+    description: 'Andrew item 7. SPECIAL CATEGORY DATA \u2014 health is GDPR Article 9, police clearance is Article 10. Only collected with separate explicit consent (community-signup.consentSpecialCategory) and only where a concrete purpose exists.';
+    displayName: 'Health / police clearance';
+    icon: 'shield-alt';
+  };
+  attributes: {
+    documentFile: Schema.Attribute.Media<'files' | 'images'> &
+      Schema.Attribute.Private;
+    expiresOn: Schema.Attribute.Date;
+    issuedOn: Schema.Attribute.Date;
+    issuingAuthority: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    kind: Schema.Attribute.Enumeration<
+      ['health_certificate', 'police_clearance']
+    > &
+      Schema.Attribute.Required;
+    reference: Schema.Attribute.String &
+      Schema.Attribute.Private &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    testsCovered: Schema.Attribute.Text & Schema.Attribute.Private;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['self_declared', 'submitted', 'verified', 'rejected', 'expired']
+    > &
+      Schema.Attribute.DefaultTo<'self_declared'>;
+  };
+}
+
+export interface ProfileHiringNeed extends Struct.ComponentSchema {
+  collectionName: 'components_profile_hiring_needs';
+  info: {
+    description: "What an employer registrant is actually looking for \u2014 the employer equivalent of a jobseeker's experience section.";
+    displayName: 'Hiring need';
+    icon: 'user-plus';
+  };
+  attributes: {
+    destinationCountry: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    notes: Schema.Attribute.Text;
+    occupationCode: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 16;
+      }>;
+    roleTitle: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    sector: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    startFrom: Schema.Attribute.Date;
+    vacancies: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100000;
+          min: 0;
+        },
+        number
+      >;
+  };
+}
+
 export interface ProfileIdentityDocument extends Struct.ComponentSchema {
   collectionName: 'components_profile_identity_documents';
   info: {
@@ -283,6 +398,8 @@ export interface ProfileIdentityDocument extends Struct.ComponentSchema {
     icon: 'id-card';
   };
   attributes: {
+    documentImage: Schema.Attribute.Media<'images' | 'files'> &
+      Schema.Attribute.Private;
     expiresOn: Schema.Attribute.Date;
     issuedOn: Schema.Attribute.Date;
     issuingAuthority: Schema.Attribute.String &
@@ -362,6 +479,65 @@ export interface ProfileLanguageCompetency extends Struct.ComponentSchema {
   };
 }
 
+export interface ProfileOrganisation extends Struct.ComponentSchema {
+  collectionName: 'components_profile_organisations';
+  info: {
+    description: "Employer or government registrants. Andrew's 'regardless of their status' \u2014 an employer contact and a ministry official are people too, but the data we need from them is not a jobseeker profile.";
+    displayName: 'Organisation';
+    icon: 'building';
+  };
+  attributes: {
+    contactJobTitle: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    country: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    department: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    kind: Schema.Attribute.Enumeration<
+      [
+        'employer',
+        'ministry',
+        'agency',
+        'public_employment_service',
+        'recruiter',
+        'training_provider',
+        'other',
+      ]
+    >;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    registrationNumber: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    remit: Schema.Attribute.Text;
+    sector: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    sizeBand: Schema.Attribute.Enumeration<
+      ['1-9', '10-49', '50-249', '250-999', '1000+']
+    >;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['self_declared', 'submitted', 'verified', 'rejected', 'expired']
+    > &
+      Schema.Attribute.DefaultTo<'self_declared'>;
+    website: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+  };
+}
+
 export interface ProfileQualification extends Struct.ComponentSchema {
   collectionName: 'components_profile_qualifications';
   info: {
@@ -371,6 +547,8 @@ export interface ProfileQualification extends Struct.ComponentSchema {
   };
   attributes: {
     awardedOn: Schema.Attribute.Date;
+    certificateFile: Schema.Attribute.Media<'files' | 'images'> &
+      Schema.Attribute.Private;
     expiresOn: Schema.Attribute.Date;
     fieldOfStudy: Schema.Attribute.String &
       Schema.Attribute.SetMinMaxLength<{
@@ -842,8 +1020,12 @@ declare module '@strapi/strapi' {
       'cards.testimonial': CardsTestimonial;
       'profile.character-reference': ProfileCharacterReference;
       'profile.contact-point': ProfileContactPoint;
+      'profile.disease-screening': ProfileDiseaseScreening;
+      'profile.health-clearance': ProfileHealthClearance;
+      'profile.hiring-need': ProfileHiringNeed;
       'profile.identity-document': ProfileIdentityDocument;
       'profile.language-competency': ProfileLanguageCompetency;
+      'profile.organisation': ProfileOrganisation;
       'profile.qualification': ProfileQualification;
       'profile.work-experience': ProfileWorkExperience;
       'sections.audiences': SectionsAudiences;

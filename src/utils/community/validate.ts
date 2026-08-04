@@ -101,7 +101,10 @@ export interface CleanClick {
   landingPath: string | null;
 }
 
+export const REGISTRANT_TYPES = ['jobseeker', 'employer', 'government', 'other'] as const;
+
 export interface CleanSignup extends CleanClick {
+  registrantType: string;
   email: string;
   firstName: string | null;
   lastName: string | null;
@@ -136,8 +139,14 @@ export function sanitizeSignup(body: any): CleanSignup {
 
   const password = str(body.password, LIMITS.maxPassword);
 
+  const rt = str(body.registrantType, 32);
+
   return {
     ...base,
+    // Unknown values fall back to jobseeker rather than being rejected — a
+    // bad enum must not cost us the lead.
+    registrantType:
+      rt && (REGISTRANT_TYPES as readonly string[]).includes(rt) ? rt : 'jobseeker',
     email,
     firstName: str(body.firstName, LIMITS.maxName),
     lastName: str(body.lastName, LIMITS.maxName),

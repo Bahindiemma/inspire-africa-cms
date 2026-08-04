@@ -13,6 +13,7 @@
     "awardedOn": { "type": "date" },
     "expiresOn": { "type": "date" },
     "grade": { "type": "string", "maxLength": 60 },
+    "certificateFile": { "type": "media", "multiple": false, "allowedTypes": ["files", "images"], "private": true },
     "verificationStatus": { "type": "enumeration", "enum": ["self_declared", "submitted", "verified", "rejected", "expired"], "default": "self_declared" }
   }
 }
