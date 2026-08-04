@@ -51,7 +51,12 @@ const EDITABLE_BY_EDITOR = [
 ];
 
 const ADMIN_ONLY = [
-  'api::candidate.candidate',
+  // `api::candidate` was removed 2026-08-04. It was an empty, unused second
+  // identity record for the same human — the person registry lives in
+  // inspire-lmis-backend (`persons` + profile tables), and holding a partial
+  // copy here invited someone to write to the wrong one. The `candidates`
+  // MySQL table is intentionally left in place (Strapi does not drop tables),
+  // so nothing can be lost; drop it manually once you are satisfied.
   'api::form-submission.form-submission',
   // Community signups hold PII (name / email / phone). Admin only — the
   // ingest routes are reached via the shared-secret policy, not a role.
