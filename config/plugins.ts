@@ -25,18 +25,29 @@ const UPLOAD_CEILING_BYTES = 2 * 1024 * 1024;
  * channel.
  *
  * Providers:
- *   smtp      — any authenticated relay. inspireafricans.com mail is on
- *               GOOGLE WORKSPACE, so SMTP_HOST=smtp.gmail.com on port 587
- *               with STARTTLS, authenticating as the sending mailbox with
- *               a Google App Password (not the sign-in password).
+ *   smtp      — any relay. inspireafricans.com mail is on GOOGLE WORKSPACE,
+ *               which offers two endpoints:
+ *                 smtp.gmail.com:587       authenticates as one mailbox with
+ *                                          an App Password (NOT the sign-in
+ *                                          password). Requires 2-Step
+ *                                          Verification on that user AND the
+ *                                          "Allow users to turn on App
+ *                                          Passwords" admin policy — either
+ *                                          one missing and the App Passwords
+ *                                          page simply does not exist.
+ *                 smtp-relay.gmail.com:587 authenticates by allow-listed
+ *                                          sender IP, no credential at all,
+ *                                          and may send as ANY address in the
+ *                                          domain. Leave SMTP_USERNAME empty.
  *   sendgrid  — API key, no SMTP.
  *   sendmail  — local binary. DEV ONLY: on a VPS with no configured MTA it
  *               either hangs or sends from an unauthenticated IP that
  *               receiving domains will treat as spam.
  *
- * IMPORTANT: authenticated relays require the From address to match the
- * mailbox you authenticate as (Google rewrites or rejects anything else). So EMAIL_FROM_ADDRESS and SMTP_USERNAME should be
- * the same mailbox unless you have explicitly configured send-as rights.
+ * IMPORTANT: on smtp.gmail.com the From address must match the mailbox you
+ * authenticate as — Google rewrites or rejects anything else — so
+ * EMAIL_FROM_ADDRESS and SMTP_USERNAME must be the same mailbox unless
+ * send-as rights are configured. smtp-relay.gmail.com has no such constraint.
  */
 function emailConfig(env: any) {
   const provider = env('EMAIL_PROVIDER', 'sendmail');
@@ -50,15 +61,17 @@ function emailConfig(env: any) {
     // Strapi's package is named nodemailer; `smtp` is accepted as the more
     // obvious alias so nobody has to remember the package name.
     providerName = 'nodemailer';
+    const smtpUser = env('SMTP_USERNAME');
     providerOptions = {
       host: env('SMTP_HOST'),
       port: env.int('SMTP_PORT', 587),
       // 587 uses STARTTLS (secure:false); 465 is implicit TLS (secure:true).
       secure: env.bool('SMTP_SECURE', false),
-      auth: {
-        user: env('SMTP_USERNAME'),
-        pass: env('SMTP_PASSWORD'),
-      },
+      // Omitted entirely when no username is set. Google Workspace's SMTP
+      // relay (smtp-relay.gmail.com) authenticates by allow-listed sender IP
+      // and has no per-user credential — passing auth:{user:undefined} makes
+      // nodemailer issue an AUTH command the relay rejects.
+      ...(smtpUser ? { auth: { user: smtpUser, pass: env('SMTP_PASSWORD') } } : {}),
     };
   }
 
@@ -69,7 +82,7 @@ function emailConfig(env: any) {
       settings: {
         defaultFrom: `${env('EMAIL_FROM_NAME', 'INSPIRE AFRICA')} <${env(
           'EMAIL_FROM_ADDRESS',
-          'emmanuel@inspireafricans.com'
+          'info@inspireafricans.com'
         )}>`,
         defaultReplyTo: env('EMAIL_REPLY_TO', 'info@inspireafricans.com'),
       },
