@@ -86,7 +86,24 @@ export interface CleanClick {
   landingPath: string | null;
 }
 
-export const REGISTRANT_TYPES = ['jobseeker', 'employer', 'government', 'other'] as const;
+export const REGISTRANT_TYPES = [
+  'worker',
+  'employer',
+  'government',
+  'education',
+  'development',
+  'other',
+] as const;
+
+/**
+ * Values retired by the CEO's 2026-08 taxonomy change, mapped to their
+ * replacement. A visitor whose page was cached before the change still posts
+ * `jobseeker`; mapping it is the difference between keeping that signup under
+ * the right audience and quietly filing it under the default.
+ */
+export const LEGACY_REGISTRANT_TYPES: Record<string, (typeof REGISTRANT_TYPES)[number]> = {
+  jobseeker: 'worker',
+};
 
 export interface CleanSignup extends CleanClick {
   registrantType: string;
@@ -123,10 +140,12 @@ export function sanitizeSignup(body: any): CleanSignup {
 
   return {
     ...base,
-    // Unknown values fall back to jobseeker rather than being rejected — a
-    // bad enum must not cost us the lead.
+    // Retired values are mapped; anything else unknown falls back to `worker`
+    // rather than being rejected — a bad enum must not cost us the lead.
     registrantType:
-      rt && (REGISTRANT_TYPES as readonly string[]).includes(rt) ? rt : 'jobseeker',
+      rt && (REGISTRANT_TYPES as readonly string[]).includes(rt)
+        ? rt
+        : (rt && LEGACY_REGISTRANT_TYPES[rt]) || 'worker',
     email,
     firstName: str(body.firstName, LIMITS.maxName),
     lastName: str(body.lastName, LIMITS.maxName),

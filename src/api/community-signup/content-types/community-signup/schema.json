@@ -42,10 +42,10 @@
 
     "registrantType": {
       "type": "enumeration",
-      "enum": ["jobseeker", "employer", "government", "other"],
-      "default": "jobseeker",
+      "enum": ["worker", "employer", "government", "education", "development", "other"],
+      "default": "worker",
       "required": true,
-      "description": "Andrew: 'everyone must pass, regardless of their status'. Asked at signup so every record is attributable to an audience from the first touch."
+      "description": "Andrew: 'everyone must pass, regardless of their status'. Asked at signup so every record is attributable to an audience from the first touch. Six-category taxonomy set by the CEO 2026-08; `jobseeker` was retired in favour of `worker` (his correction) and existing rows were migrated."
     },
 
     "email": { "type": "email", "private": true, "maxLength": 254 },

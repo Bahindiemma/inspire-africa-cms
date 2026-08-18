@@ -81,7 +81,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
       { __component: 'blocks.heading', level: 'h3', text: 'When you join the community' },
       p([t('Our community is hosted on Mighty Networks. Before we hand you over, we ask for your details on our own signup page so that we — not only our community provider — can support you.')]),
       { __component: 'blocks.list', ordered: false, items: [
-        'Whether you are a worker, an employer, a government representative or something else',
+        'Which of our audiences you belong to — worker, employer or recruiter, government or public sector, education or training provider, development partner or NGO, or something else',
         'Your first name, last name and email address',
         'Which page or campaign you came from, so we know what is working',
         'A one-way, irreversible hash of your IP address and your browser&rsquo;s user-agent string, used to block automated abuse — we do not store the IP address itself',
