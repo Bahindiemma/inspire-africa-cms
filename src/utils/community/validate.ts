@@ -92,6 +92,7 @@ export const REGISTRANT_TYPES = [
   'government',
   'education',
   'development',
+  'diaspora',
   'other',
 ] as const;
 
