@@ -21,6 +21,12 @@ const REVALIDATABLE_COLLECTIONS = new Set([
   'api::design-token.design-token',
   'api::navigation.navigation',
   'api::form-definition.form-definition',
+  // Media. Replacing a photo in the Media Library changes no entry at all, so
+  // without this the site kept serving the old picture until someone manually
+  // revalidated — the "I changed the image and nothing happened" complaint.
+  // The frontend maps this to a whole-layout revalidation, because a file can
+  // be referenced from anywhere.
+  'plugin::upload.file',
 ]);
 
 export default (_config: any, { strapi }: any) => {
