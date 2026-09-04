@@ -167,7 +167,7 @@ export async function seedContent(strapi: Core.Strapi) {
       { label: 'Employers', href: '/employers', order: 3, isCta: false, isExternal: false },
       { label: 'Governments', href: '/governments', order: 4, isCta: false, isExternal: false },
       { label: 'Blogs', href: '/blog', order: 5, isCta: false, isExternal: false },
-      { label: 'Join the Community', href: '/join', order: 6, isCta: true, isExternal: false },
+      { label: 'Join the Community', href: '/join/start', order: 6, isCta: true, isExternal: false },
       { label: 'Contact', href: '/contact', order: 7, isCta: false, isExternal: false },
     ],
     footerColumns: [
@@ -409,7 +409,7 @@ export async function seedContent(strapi: Core.Strapi) {
       photoCaptionTitle: 'Ready Now',
       photoCaptionSub: '3-tier readiness pipeline',
       ctas: [
-        { label: 'Join the Community', href: '/join', variant: 'primary', withArrow: true },
+        { label: 'Join the Community', href: '/join/start', variant: 'primary', withArrow: true, utmSource: 'homepage_hero' },
         { label: 'Our Approach', href: '/approach', variant: 'ghost', withArrow: false },
       ],
     },
@@ -454,7 +454,7 @@ export async function seedContent(strapi: Core.Strapi) {
       eyebrow: 'Your move',
       headingHtml: '<span class="italic-accent">If you\'re ready —</span>Join the<br/>community.',
       lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
-      primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true },
+      primaryCta: { label: 'Join the Community — Free', href: '/join/start', variant: 'dark', withArrow: true, utmSource: 'homepage_final_cta' },
       secondaryLinks: [
         { label: 'For Employers', href: '/employers', order: 1 },
         { label: 'For Governments', href: '/governments', order: 2 },
@@ -588,7 +588,7 @@ const WORKERS_PAGE = {
       photoCaptionTitle: 'Fair · Transparent',
       photoCaptionSub: 'Protected at every step',
       ctas: [
-        { label: 'Join the Community', href: '/join', variant: 'primary', withArrow: true, utmSource: 'workers_hero' },
+        { label: 'Join the Community', href: '/join/start', variant: 'primary', withArrow: true, utmSource: 'workers_hero' },
         { label: 'How it works', href: '/approach', variant: 'ghost', withArrow: false },
       ],
     },
@@ -633,7 +633,7 @@ const WORKERS_PAGE = {
       eyebrow: 'Your future starts here',
       headingHtml: "<span class=\"italic-accent\">Take the first step —</span>Join the<br/>community.",
       lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
-      primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true, utmSource: 'workers_final' },
+      primaryCta: { label: 'Join the Community — Free', href: '/join/start', variant: 'dark', withArrow: true, utmSource: 'workers_final' },
     },
   ],
 };
@@ -811,7 +811,7 @@ const APPROACH_PAGE = {
       photoCaptionTitle: 'Earn · Learn · Return',
       photoCaptionSub: 'The circular model',
       ctas: [
-        { label: 'Join the Community', href: '/join', variant: 'primary', withArrow: true, utmSource: 'approach_hero' },
+        { label: 'Join the Community', href: '/join/start', variant: 'primary', withArrow: true, utmSource: 'approach_hero' },
         { label: 'For Workers', href: '/workers', variant: 'ghost', withArrow: false },
       ],
     },
@@ -848,7 +848,7 @@ const APPROACH_PAGE = {
       eyebrow: 'Your move',
       headingHtml: '<span class="italic-accent">Ready to begin?</span>Join the<br/>community.',
       lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem.',
-      primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true, utmSource: 'approach_cta' },
+      primaryCta: { label: 'Join the Community — Free', href: '/join/start', variant: 'dark', withArrow: true, utmSource: 'approach_cta' },
     },
   ],
 };
@@ -871,7 +871,7 @@ const JOIN_PAGE = {
       photoCaptionTitle: 'Free Forever',
       photoCaptionSub: 'No paywalls. No hidden fees.',
       ctas: [
-        { label: "Join — It's Free", href: '/join', variant: 'primary', withArrow: true, utmSource: 'join_page_main' },
+        { label: "Join — It's Free", href: '/join/start', variant: 'primary', withArrow: true, utmSource: 'join_page_main' },
         { label: 'For Workers', href: '/workers', variant: 'ghost', withArrow: false },
       ],
     },
@@ -917,7 +917,7 @@ const JOIN_PAGE = {
       eyebrow: 'One click',
       headingHtml: '<span class="italic-accent">The door is open —</span>Join now.',
       lede: 'Free membership. No card. No commitment.',
-      primaryCta: { label: 'Join the Community — Free', href: '/join', variant: 'dark', withArrow: true, utmSource: 'join_page_main' },
+      primaryCta: { label: 'Join the Community — Free', href: '/join/start', variant: 'dark', withArrow: true, utmSource: 'join_page_main' },
     },
   ],
 };
