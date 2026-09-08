@@ -4,6 +4,7 @@ import { seedRoles } from './bootstrap/seed-roles';
 import { seedAdminRoles } from './bootstrap/seed-admin-roles';
 import { ensurePublicApiToken } from './bootstrap/ensure-public-api-token';
 import { seedContent, seedLegalDocuments } from './bootstrap/seed-content';
+import { seedPhotoCredits } from './bootstrap/seed-photo-credits';
 
 export default {
   /**
@@ -41,6 +42,16 @@ export default {
     if (String(process.env.RESEED_LEGAL || '').toLowerCase() === 'true') {
       strapi.log.info('[bootstrap] RESEED_LEGAL=true — refreshing legal documents only.');
       await seedLegalDocuments(strapi);
+    }
+
+    // 6. Optional: fill in photo credits on Media Library files whose
+    //    caption is empty and whose filename carries a photographer
+    //    (`Benjamin-Lehman-Unsplash.jpg`). Never overwrites an editor's
+    //    caption, never invents an attribution. Safe to run any time; it is
+    //    scoped to media captions and touches no page content.
+    if (String(process.env.RESEED_CREDITS || '').toLowerCase() === 'true') {
+      strapi.log.info('[bootstrap] RESEED_CREDITS=true — filling blank photo credits.');
+      await seedPhotoCredits(strapi);
     }
 
     strapi.log.info('[bootstrap] inspire-africa-cms is ready.');
