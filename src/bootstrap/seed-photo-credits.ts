@@ -35,8 +35,10 @@ import type { Core } from '@strapi/strapi';
  * the caption in the admin UI — both work, and the admin UI wins.
  */
 const EXPLICIT_CREDITS: Record<string, string> = {
-  // Example of the shape; harmless if the file is not present.
-  // 'workers-hero-nurse.jpg': 'Jane Doe / Unsplash',
+  // Confirmed by the CEO 2026-09-08: this is the same photograph as
+  // Qwerqu-Mcbrew-Unsplash.jpg. The filename alone does not carry the
+  // surname, so it could not be derived — it had to be told to us.
+  'Qwerqu_50.jpg': 'Qwerqu Mcbrew / Unsplash',
 };
 
 /** Sources recognised as the trailing token of a house-convention filename. */

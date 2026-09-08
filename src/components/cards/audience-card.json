@@ -6,22 +6,48 @@
   },
   "options": {},
   "attributes": {
-    "number": { "type": "string", "default": "01" },
-    "title": { "type": "string", "required": true },
-    "body": { "type": "text", "required": true },
+    "number": {
+      "type": "string",
+      "default": "01"
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "text",
+      "required": true
+    },
     "photo": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "photoCredit": {
+      "type": "string",
+      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: \u2026\" \u2014 type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
     },
     "photoUrl": {
       "type": "string",
-      "description": "Optional override URL — used by the bootstrap seed to point at pre-existing /public/images/* assets without uploading via the Media Library. Editors should use the `photo` media field; frontend reads `photo.url ?? photoUrl`."
+      "description": "Optional override URL \u2014 used by the bootstrap seed to point at pre-existing /public/images/* assets without uploading via the Media Library. Editors should use the `photo` media field; frontend reads `photo.url ?? photoUrl`."
     },
-    "photoAlt": { "type": "string" },
-    "tag": { "type": "string", "description": "Top-left badge text, e.g. 'For Workers'." },
-    "ctaLabel": { "type": "string", "required": true },
-    "ctaHref": { "type": "string", "required": true },
+    "photoAlt": {
+      "type": "string"
+    },
+    "tag": {
+      "type": "string",
+      "description": "Top-left badge text, e.g. 'For Workers'."
+    },
+    "ctaLabel": {
+      "type": "string",
+      "required": true
+    },
+    "ctaHref": {
+      "type": "string",
+      "required": true
+    },
     "isPrimary": {
       "type": "boolean",
       "default": false,

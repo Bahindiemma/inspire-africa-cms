@@ -1,16 +1,28 @@
 {
   "collectionName": "components_sections_heroes",
-  "info": { "displayName": "Hero", "icon": "star" },
+  "info": {
+    "displayName": "Hero",
+    "icon": "star"
+  },
   "options": {},
   "attributes": {
-    "watermark": { "type": "string", "description": "Big background letters, e.g. 'INSPIRE'." },
-    "eyebrow": { "type": "string", "required": true },
+    "watermark": {
+      "type": "string",
+      "description": "Big background letters, e.g. 'INSPIRE'."
+    },
+    "eyebrow": {
+      "type": "string",
+      "required": true
+    },
     "headingHtml": {
       "type": "text",
       "required": true,
-      "description": "Headline with allowed inline spans: <span class='small-italic'>, <span class='accent'>. Frontend renders as innerHTML — sanitize before save."
+      "description": "Headline with allowed inline spans: <span class='small-italic'>, <span class='accent'>. Frontend renders as innerHTML \u2014 sanitize before save."
     },
-    "lede": { "type": "text", "required": true },
+    "lede": {
+      "type": "text",
+      "required": true
+    },
     "ctas": {
       "type": "component",
       "repeatable": true,
@@ -20,15 +32,27 @@
     "photo": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "photoCredit": {
+      "type": "string",
+      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: \u2026\" \u2014 type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
     },
     "photoUrl": {
       "type": "string",
-      "description": "Optional override URL — used by the bootstrap seed to point at pre-existing /public/images/* assets without uploading them via the Media Library. Editors should use the `photo` media field; frontend reads `photoUrl ?? photo.url`."
+      "description": "Optional override URL \u2014 used by the bootstrap seed to point at pre-existing /public/images/* assets without uploading them via the Media Library. Editors should use the `photo` media field; frontend reads `photoUrl ?? photo.url`."
     },
-    "photoAlt": { "type": "string" },
-    "photoCaptionTitle": { "type": "string" },
-    "photoCaptionSub": { "type": "string" },
+    "photoAlt": {
+      "type": "string"
+    },
+    "photoCaptionTitle": {
+      "type": "string"
+    },
+    "photoCaptionSub": {
+      "type": "string"
+    },
     "centered": {
       "type": "boolean",
       "default": false,
