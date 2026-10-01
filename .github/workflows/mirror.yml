@@ -1,0 +1,50 @@
+name: Mirror to personal repository
+
+# This organisation repository is the source of truth. Every push, branch or
+# tag deletion, and a daily run as a backstop, copies its branches and tags to
+# github.com/Bahindiemma/<same name>, which is kept as a mirror.
+#
+# Branches deleted here are deleted there (--prune), so anything pushed only to
+# the personal copy is overwritten: push here, not there. Tags are copied but
+# never pruned. The key is a deploy key with write access to that one personal
+# repository and nothing else.
+on:
+  push:
+    branches: ["**"]
+    tags: ["**"]
+  delete:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push every branch and tag to the personal mirror
+        env:
+          KEY: ${{ secrets.MIRROR_SSH_KEY }}
+          TARGET: git@github.com:Bahindiemma/${{ github.event.repository.name }}.git
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/mirror && chmod 600 ~/.ssh/mirror
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/mirror -o IdentitiesOnly=yes"
+
+          git fetch --prune --tags origin '+refs/heads/*:refs/remotes/origin/*'
+          git remote set-head origin --delete 2>/dev/null || true
+
+          git push --force --prune "$TARGET" '+refs/remotes/origin/*:refs/heads/*'
+          git push --force "$TARGET" '+refs/tags/*:refs/tags/*'
