@@ -33,6 +33,7 @@ import {
   tokenMatches,
   expiryFrom,
   verificationEmail,
+  thankYouEmail,
   MAX_SENDS,
 } from '../../../utils/community/verification';
 
@@ -124,6 +125,36 @@ async function sendVerification(
     strapi.log.error(
       `[community-signup] verification email failed: ${(err as Error).message}`
     );
+    return false;
+  }
+}
+
+/**
+ * The non-worker's note: received, thank you, no link. Same send cap and
+ * failure reporting as the verification email, for the same reason — a relay
+ * that stalls must not hold the visitor's request open.
+ */
+async function sendThankYou(
+  strapi: any,
+  row: { email: string; firstName: string | null }
+): Promise<boolean> {
+  const mail = thankYouEmail({ firstName: row.firstName, siteName: 'INSPIRE AFRICA' });
+  const SEND_TIMEOUT_MS = 12000;
+  try {
+    await Promise.race([
+      strapi.plugin('email').service('email').send({
+        to: row.email,
+        subject: mail.subject,
+        text: mail.text,
+        html: mail.html,
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`send timed out after ${SEND_TIMEOUT_MS}ms`)), SEND_TIMEOUT_MS)
+      ),
+    ]);
+    return true;
+  } catch (err) {
+    strapi.log.error(`[community-signup] thank-you email failed: ${(err as Error).message}`);
     return false;
   }
 }
@@ -268,7 +299,27 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       userAgent,
     });
 
-    const token = newToken();
+    /*
+      WHO GETS WHICH EMAIL — AND WHY THIS ENDPOINT NO LONGER SENDS A LINK.
+
+      Joining used to end in Mighty Networks, behind a confirmation link this
+      endpoint emailed. The readiness portal replaces the community (owner
+      decision, 3 Nov 2026; see the website repo's
+      docs/superpowers/specs/2026-11-03-join-to-readiness-design.md):
+
+        worker      the REGISTER emails them an invitation into readiness.
+                    The website asks for it straight after this call. Sending
+                    our confirmation too would put two emails, with two
+                    different links, in front of the same person.
+        everyone    a short "thanks, we've received your details" note with
+        else        NO link — there is nowhere for them to go yet (owner
+                    decision), and a link to nowhere is worse than none.
+
+      So no verification token is minted here any more. Clearing it on an
+      existing row also retires any confirmation link still sitting in an
+      inbox, which the website now answers with "joining has moved".
+    */
+    const isWorker = signup.registrantType === 'worker';
     const data: Record<string, unknown> = {
       ...optional,
       status: 'Submitted',
@@ -280,9 +331,9 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
       deviceType,
       botScore,
       emailVerified: false,
-      verificationTokenHash: hashToken(token),
-      verificationSentAt: now,
-      verificationExpiresAt: expiryFrom(now),
+      verificationTokenHash: null,
+      verificationSentAt: isWorker ? null : now,
+      verificationExpiresAt: null,
     };
 
     try {
@@ -313,7 +364,7 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
             utmMedium: target.utmMedium ?? signup.utmMedium,
             utmCampaign: target.utmCampaign ?? signup.utmCampaign,
             clickedAt: target.clickedAt ?? now,
-            verificationSendCount: (target.verificationSendCount || 0) + 1,
+            verificationSendCount: (target.verificationSendCount || 0) + (isWorker ? 0 : 1),
           },
         });
         if (byEmail && byClick && byClick.id !== byEmail.id) {
@@ -321,17 +372,23 @@ export default factories.createCoreController(UID, ({ strapi }) => ({
         }
       } else {
         await repo.create({
-          data: { ...data, clickId: signup.clickId, clickedAt: now, attempts: 1, verificationSendCount: 1 },
+          data: {
+            ...data,
+            clickId: signup.clickId,
+            clickedAt: now,
+            attempts: 1,
+            verificationSendCount: isWorker ? 0 : 1,
+          },
         });
       }
 
-      const sent = alreadyVerified
+      // `verificationSent` keeps its old meaning for a non-worker ("the
+      // thank-you left"). For a worker nothing is sent from here, which is
+      // the intended outcome, so it reads true; the website takes a worker's
+      // result from the register instead.
+      const sent = isWorker
         ? true
-        : await sendVerification(
-            strapi,
-            { email: signup.email, firstName: signup.firstName },
-            token
-          );
+        : await sendThankYou(strapi, { email: signup.email, firstName: signup.firstName });
 
       ctx.status = 200;
       ctx.body = {

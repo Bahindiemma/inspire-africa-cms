@@ -38,6 +38,34 @@ export function expiryFrom(now: Date): Date {
 }
 
 /**
+ * The note a non-worker receives after joining: we have your details, we will
+ * be in touch. Deliberately NO link — there is no destination for these
+ * audiences yet (owner decision, 3 Nov 2026), and the verification link is now
+ * the register's job, for workers only.
+ */
+export function thankYouEmail(opts: { firstName: string | null; siteName: string }) {
+  const name = opts.firstName ? ` ${opts.firstName}` : '';
+  return {
+    subject: `Thank you for joining ${opts.siteName}`,
+    text: [
+      `Hello${name},`,
+      '',
+      `Thank you for joining ${opts.siteName}. We have received your details, and a member of our team will be in touch.`,
+      '',
+      'If you did not ask to join, you can ignore this message.',
+      '',
+      opts.siteName,
+    ].join('\n'),
+    html: [
+      `<p>Hello${name},</p>`,
+      `<p>Thank you for joining ${opts.siteName}. We have received your details, and a member of our team will be in touch.</p>`,
+      `<p style="font-size:13px;color:#555">If you did not ask to join, you can ignore this message.</p>`,
+      `<p style="font-size:13px;color:#555">${opts.siteName}</p>`,
+    ].join(''),
+  };
+}
+
+/**
  * The verification email. Plain text as well as HTML — a worker on a basic
  * phone or a text-only client must be able to complete signup, and this is
  * the only step between them and the community.
