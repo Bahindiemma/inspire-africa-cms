@@ -135,7 +135,6 @@ export async function seedContent(strapi: Core.Strapi) {
         { platform: 'youtube', label: 'YouTube', url: 'https://www.youtube.com/@InspireGroupTV', handle: 'InspireGroupTV', iconKey: 'youtube', order: 6 },
         { platform: 'whatsapp', label: 'WhatsApp Business', url: 'https://wa.me/256750329751', handle: '+256 750 329 751', iconKey: 'whatsapp', order: 7 },
       ],
-      communityBaseUrl: 'https://inspire-africa.mn.co/spaces/20105635',
       ...(logoId ? { logo: logoId } : {}),
       ...(faviconId ? { favicon: faviconId } : {}),
       ...(ogImageId ? { defaultOgImage: ogImageId } : {}),
@@ -880,7 +879,7 @@ const JOIN_PAGE = {
       tone: 'yellow',
       eyebrow: 'What you get inside',
       headingHtml: 'Everything you need <span class="italic-accent">in one place.</span>',
-      lede: 'The Inspire community on Mighty Networks is your free entry point — a structured, peer-rich space designed to help you move from preparation to placement.',
+      lede: 'INSPIRE AFRICA Readiness is your free entry point — a structured space designed to help you move from preparation to placement.',
       items: [
         { marker: '✓', title: 'A vibrant international network', body: 'Connect with African professionals, recruiters and employers already on the path abroad.' },
         { marker: '✓', title: 'Live opportunities', body: 'Real jobs from verified employers — not aggregated scraping from the wider web.' },
