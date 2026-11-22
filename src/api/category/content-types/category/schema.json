@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "categories",
+  "info": {
+    "singularName": "category",
+    "pluralName": "categories",
+    "displayName": "Category",
+    "description": "Blog post categories. Editors create them here or straight from a post's category picker (\"Create a relation\"). A category in use by any post cannot be deleted."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": { "type": "string", "required": true, "unique": true, "maxLength": 80 },
+    "slug": { "type": "uid", "targetField": "name", "required": true },
+    "description": { "type": "text", "maxLength": 300 },
+    "order": {
+      "type": "integer",
+      "default": 0,
+      "description": "Lower numbers sort first wherever categories are listed."
+    },
+    "color": {
+      "type": "string",
+      "regex": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+      "default": "#F8BD26"
+    },
+    "blog_posts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::blog-post.blog-post",
+      "mappedBy": "category"
+    }
+  }
+}

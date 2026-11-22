@@ -5,6 +5,8 @@ import { seedAdminRoles } from './bootstrap/seed-admin-roles';
 import { ensurePublicApiToken } from './bootstrap/ensure-public-api-token';
 import { seedContent, seedLegalDocuments } from './bootstrap/seed-content';
 import { seedPhotoCredits } from './bootstrap/seed-photo-credits';
+import { migrateBlogCategories } from './bootstrap/migrate-blog-categories';
+import { registerCategoryGuards } from './bootstrap/category-guards';
 
 export default {
   /**
@@ -13,6 +15,7 @@ export default {
    */
   register({ strapi }: { strapi: Core.Strapi }) {
     registerKeycloakRoutes(strapi);
+    registerCategoryGuards(strapi);
   },
 
   /**
@@ -31,6 +34,8 @@ export default {
     await seedRoles(strapi);
     await seedAdminRoles(strapi);
     await ensurePublicApiToken(strapi);
+    // Categories before content: the content seeder links posts to them.
+    await migrateBlogCategories(strapi);
     await seedContent(strapi);
 
     // 5. Optional: refresh ONLY the legal documents from legal-bodies.ts.
