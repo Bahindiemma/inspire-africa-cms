@@ -34,6 +34,7 @@ const PUBLIC_READABLE = [
   'api::corridor.corridor',
   'api::blog-post.blog-post',
   'api::tag.tag',
+  'api::category.category',
   'api::author.author',
   'api::legal-document.legal-document',
   'api::job-posting.job-posting',
@@ -46,6 +47,7 @@ const EDITABLE_BY_EDITOR = [
   'api::job-posting.job-posting',
   'api::legal-document.legal-document',
   'api::tag.tag',
+  'api::category.category',
   'api::author.author',
   'api::corridor.corridor',
 ];

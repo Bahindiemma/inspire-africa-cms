@@ -47,17 +47,10 @@
       }
     },
     "category": {
-      "type": "enumeration",
-      "enum": [
-        "Ethical Recruitment",
-        "Policy & Markets",
-        "Development Economics",
-        "Worker Stories",
-        "Employer Stories",
-        "Government Partnerships",
-        "Platform Updates"
-      ],
-      "required": true
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category",
+      "inversedBy": "blog_posts"
     },
     "heroImage": {
       "type": "media",

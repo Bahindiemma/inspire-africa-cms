@@ -311,11 +311,14 @@ export async function seedContent(strapi: Core.Strapi) {
       p.tags.map(async (name) => await strapi.documents('api::tag.tag').findFirst({ filters: { slug: tagSlugs[name] } as any }))
     );
     const heroId = mediaByUrl.get(BLOG_HERO_BY_SLUG[p.slug]);
+    // Category is a relation now; migrateBlogCategories() runs first and
+    // creates the starter categories these names refer to.
+    const categoryDoc = await strapi.documents('api::category.category').findFirst({ filters: { name: p.category } as any });
     const data: any = {
       title: p.title,
       slug: p.slug,
       excerpt: p.excerpt,
-      category: p.category,
+      category: categoryDoc?.documentId,
       heroAlt: p.heroAlt,
       readMinutes: 7,
       body: p.body,

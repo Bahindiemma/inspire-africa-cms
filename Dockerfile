@@ -37,6 +37,8 @@ COPY --from=builder /app/config ./config
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/dist ./dist
+# Migration files are plain JS, read from /app/database/migrations at boot.
+COPY --from=builder /app/database ./database
 COPY --from=builder /app/tsconfig.json ./
 
 # Strapi writes to .tmp + public/uploads at runtime. Ensure they exist and
