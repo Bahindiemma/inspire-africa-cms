@@ -56,6 +56,12 @@
       "type": "component",
       "repeatable": false,
       "component": "shared.seo"
+    },
+    "showBlogDates": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show the date on blog posts and post cards across the website. Off hides every date, except posts set to 'alwaysShow'.",
+      "pluginOptions": { "i18n": { "localized": false } }
     }
   }
 }

@@ -7,6 +7,9 @@ import { seedContent, seedLegalDocuments } from './bootstrap/seed-content';
 import { seedPhotoCredits } from './bootstrap/seed-photo-credits';
 import { migrateBlogCategories } from './bootstrap/migrate-blog-categories';
 import { registerCategoryGuards } from './bootstrap/category-guards';
+import { registerRichTextSync } from './bootstrap/rich-text-sync';
+import { registerBlogDates } from './bootstrap/blog-dates';
+import { migrateRichText } from './bootstrap/migrate-rich-text';
 
 export default {
   /**
@@ -16,6 +19,8 @@ export default {
   register({ strapi }: { strapi: Core.Strapi }) {
     registerKeycloakRoutes(strapi);
     registerCategoryGuards(strapi);
+    registerRichTextSync(strapi);
+    registerBlogDates(strapi);
   },
 
   /**
@@ -58,6 +63,10 @@ export default {
       strapi.log.info('[bootstrap] RESEED_CREDITS=true — filling blank photo credits.');
       await seedPhotoCredits(strapi);
     }
+
+    // 7. Rich text + blog dates (2026-11-23). Last, so content any seeder
+    //    above just wrote (fresh database, RESEED_LEGAL) is converted too.
+    await migrateRichText(strapi);
 
     strapi.log.info('[bootstrap] inspire-africa-cms is ready.');
   },
