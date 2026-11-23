@@ -11,6 +11,7 @@ import { registerRichTextSync } from './bootstrap/rich-text-sync';
 import { registerBlogDates } from './bootstrap/blog-dates';
 import { migrateRichText } from './bootstrap/migrate-rich-text';
 import { migrateListFields } from './bootstrap/migrate-list-fields';
+import { recoverBlogBodies } from './bootstrap/recover-blog-bodies';
 import { registerListGuards } from './bootstrap/list-guards';
 
 export default {
@@ -72,6 +73,15 @@ export default {
     // 7. Rich text + blog dates (2026-11-23). Last, so content any seeder
     //    above just wrote (fresh database, RESEED_LEGAL) is converted too.
     await migrateRichText(strapi);
+
+    // 8. One-off (2026-11-23): restore the full text of the three launch blog
+    //    posts, which the original seeder only loaded in abbreviated form.
+    //    RECOVER_BLOG_BODIES=dry-run logs the plan; =apply writes and publishes.
+    //    Run once, then recreate without it.
+    const recover = String(process.env.RECOVER_BLOG_BODIES || '').toLowerCase();
+    if (recover === 'dry-run' || recover === 'apply') {
+      await recoverBlogBodies(strapi, recover);
+    }
 
     strapi.log.info('[bootstrap] inspire-africa-cms is ready.');
   },
