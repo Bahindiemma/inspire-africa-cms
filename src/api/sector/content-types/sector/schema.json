@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sectors",
+  "info": {
+    "singularName": "sector",
+    "pluralName": "sectors",
+    "displayName": "Sector",
+    "description": "Job sectors editors pick on a Job Posting (Healthcare, Care, Hospitality, …). Add one here or with \"Create a relation\" in a job's sector field."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": { "type": "string", "required": true, "unique": true, "maxLength": 80 },
+    "slug": { "type": "uid", "targetField": "name" },
+    "description": { "type": "text", "maxLength": 300, "description": "Optional note for editors." },
+    "order": { "type": "integer", "default": 0, "description": "Lower numbers come first in the Sector list." },
+    "job_postings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::job-posting.job-posting",
+      "mappedBy": "sector"
+    }
+  }
+}

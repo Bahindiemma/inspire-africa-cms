@@ -210,10 +210,10 @@ export interface CardsTestimonial extends Struct.ComponentSchema {
     icon: 'quote-right';
   };
   attributes: {
-    flag: Schema.Attribute.Enumeration<
-      ['Worker voice', 'Employer voice', 'Government voice', 'Partner voice']
-    > &
-      Schema.Attribute.Required;
+    flag: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::testimonial-label.testimonial-label'
+    >;
     name: Schema.Attribute.String & Schema.Attribute.Required;
     photo: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
     photoAlt: Schema.Attribute.String;

@@ -38,6 +38,8 @@ const PUBLIC_READABLE = [
   'api::author.author',
   'api::legal-document.legal-document',
   'api::job-posting.job-posting',
+  'api::sector.sector',
+  'api::testimonial-label.testimonial-label',
   'api::form-definition.form-definition',
 ];
 
@@ -50,6 +52,8 @@ const EDITABLE_BY_EDITOR = [
   'api::category.category',
   'api::author.author',
   'api::corridor.corridor',
+  'api::sector.sector',
+  'api::testimonial-label.testimonial-label',
 ];
 
 const ADMIN_ONLY = [

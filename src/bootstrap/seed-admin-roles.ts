@@ -68,6 +68,8 @@ const ALL_EDITORIAL_TYPES = [
   'api::corridor.corridor',
   'api::tag.tag',
   'api::category.category',
+  'api::sector.sector',
+  'api::testimonial-label.testimonial-label',
   'api::author.author',
   'api::form-definition.form-definition',
 ];
