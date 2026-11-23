@@ -807,6 +807,21 @@ export interface ApiBlogPostBlogPost extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    dateDisplay: Schema.Attribute.Enumeration<
+      ['useSiteSetting', 'alwaysShow', 'alwaysHide']
+    > &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'useSiteSetting'>;
+    displayDate: Schema.Attribute.Date &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }>;
     excerpt: Schema.Attribute.Text &
       Schema.Attribute.Required &
       Schema.Attribute.SetPluginOptions<{
@@ -1703,6 +1718,13 @@ export interface ApiSiteSettingSiteSetting extends Struct.SingleTypeSchema {
       }> &
       Schema.Attribute.DefaultTo<'INSPIRE AFRICA'>;
     publishedAt: Schema.Attribute.DateTime;
+    showBlogDates: Schema.Attribute.Boolean &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<false>;
     socialLinks: Schema.Attribute.Component<'shared.social-link', true>;
     tagline: Schema.Attribute.String &
       Schema.Attribute.Required &

@@ -1,13 +1,24 @@
 {
   "collectionName": "components_blocks_lists",
-  "info": { "displayName": "List", "icon": "list-ul" },
+  "info": {
+    "displayName": "List",
+    "icon": "list-ul"
+  },
   "options": {},
   "attributes": {
+    "content": {
+      "type": "blocks",
+      "description": "The list. Use the list buttons in the editor (bulleted or numbered). Bold, italic and links inside items show on the website as formatted here."
+    },
     "ordered": {
       "type": "boolean",
       "default": false,
-      "description": "true → renders as <ol> with decimal-leading-zero counter."
+      "description": "Old setting, used only by items written before rich text. In 'content', choose bulleted or numbered with the editor's list buttons."
     },
-    "items": { "type": "json", "required": true, "description": "Array of strings." }
+    "items": {
+      "type": "json",
+      "required": false,
+      "description": "Old plain-text items, kept automatically in step with 'content'. Hidden in the editor; do not edit."
+    }
   }
 }

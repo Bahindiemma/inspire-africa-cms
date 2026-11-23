@@ -1,9 +1,23 @@
 {
   "collectionName": "components_blocks_callouts",
-  "info": { "displayName": "Callout", "icon": "info-circle" },
+  "info": {
+    "displayName": "Callout",
+    "icon": "info-circle"
+  },
   "options": {},
   "attributes": {
-    "title": { "type": "string", "required": true },
-    "text": { "type": "text", "required": true }
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "content": {
+      "type": "blocks",
+      "description": "Body of the highlighted box. Rich text: bold, italic, links, lists and so on show on the website exactly as formatted here."
+    },
+    "text": {
+      "type": "text",
+      "required": false,
+      "description": "Old plain-text version, kept automatically in step with 'content'. Hidden in the editor; do not edit."
+    }
   }
 }
