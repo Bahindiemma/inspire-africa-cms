@@ -803,18 +803,7 @@ export interface ApiBlogPostBlogPost extends Struct.CollectionTypeSchema {
           localized: true;
         };
       }>;
-    category: Schema.Attribute.Enumeration<
-      [
-        'Ethical Recruitment',
-        'Policy & Markets',
-        'Development Economics',
-        'Worker Stories',
-        'Employer Stories',
-        'Government Partnerships',
-        'Platform Updates',
-      ]
-    > &
-      Schema.Attribute.Required;
+    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -836,6 +825,7 @@ export interface ApiBlogPostBlogPost extends Struct.CollectionTypeSchema {
         };
       }>;
     heroImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    heroImageCredit: Schema.Attribute.String;
     locale: Schema.Attribute.String;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -880,79 +870,48 @@ export interface ApiBlogPostBlogPost extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiCandidateCandidate extends Struct.CollectionTypeSchema {
-  collectionName: 'candidates';
+export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
+  collectionName: 'categories';
   info: {
-    description: 'PII \u2014 never exposed on the public API. Read access restricted to inspire-admin role.';
-    displayName: 'Candidate';
-    pluralName: 'candidates';
-    singularName: 'candidate';
+    description: 'Blog post categories. Editors create them here or straight from a post\'s category picker ("Create a relation"). A category in use by any post cannot be deleted.';
+    displayName: 'Category';
+    pluralName: 'categories';
+    singularName: 'category';
   };
   options: {
     draftAndPublish: false;
   };
   attributes: {
-    applicationStatus: Schema.Attribute.Enumeration<
-      [
-        'New',
-        'Screening',
-        'Assessment',
-        'Matched',
-        'Deployed',
-        'Returned',
-        'Withdrawn',
-        'Rejected',
-      ]
-    > &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'New'>;
-    assignedAgent: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Private;
-    consentDataSharing: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<false>;
-    consentMarketing: Schema.Attribute.Boolean &
-      Schema.Attribute.DefaultTo<false>;
-    consentTimestamp: Schema.Attribute.DateTime;
-    countryOfOrigin: Schema.Attribute.String;
+    blog_posts: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::blog-post.blog-post'
+    >;
+    color: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#F8BD26'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    currentLocation: Schema.Attribute.String;
-    email: Schema.Attribute.Email &
-      Schema.Attribute.Required &
-      Schema.Attribute.Private &
-      Schema.Attribute.Unique;
-    fullName: Schema.Attribute.String & Schema.Attribute.Required;
-    languageProficiency: Schema.Attribute.JSON;
+    description: Schema.Attribute.Text &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 300;
+      }>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::candidate.candidate'
+      'api::category.category'
     > &
       Schema.Attribute.Private;
-    notes: Schema.Attribute.Blocks & Schema.Attribute.Private;
-    phone: Schema.Attribute.String & Schema.Attribute.Private;
-    portfolio: Schema.Attribute.Media<'files' | 'images', true> &
-      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
-    resume: Schema.Attribute.Media<'files'> & Schema.Attribute.Private;
-    sectors: Schema.Attribute.JSON;
-    skillTags: Schema.Attribute.Relation<'manyToMany', 'api::tag.tag'>;
+    slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    yearsExperience: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 60;
-          min: 0;
-        },
-        number
-      >;
   };
 }
 
@@ -1045,10 +1004,18 @@ export interface ApiCommunitySignupCommunitySignup
         maxLength: 255;
       }>;
     registrantType: Schema.Attribute.Enumeration<
-      ['jobseeker', 'employer', 'government', 'other']
+      [
+        'worker',
+        'employer',
+        'government',
+        'education',
+        'development',
+        'diaspora',
+        'other',
+      ]
     > &
       Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'jobseeker'>;
+      Schema.Attribute.DefaultTo<'worker'>;
     source: Schema.Attribute.String &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 128;
@@ -1362,91 +1329,6 @@ export interface ApiFormSubmissionFormSubmission
   };
 }
 
-export interface ApiIssuingBodyIssuingBody extends Struct.CollectionTypeSchema {
-  collectionName: 'issuing_bodies';
-  info: {
-    description: 'Awarding institutions + their accreditation by the competent national authority (Andrew items 3, 4). Staff-maintained reference data. Qualifications capture the body as free text at signup; matching to this registry happens afterwards, because a jobseeker types their college name \u2014 they do not pick from a list.';
-    displayName: 'Issuing Body';
-    pluralName: 'issuing-bodies';
-    singularName: 'issuing-body';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-api': {
-      visible: false;
-    };
-    'content-manager': {
-      visible: true;
-    };
-  };
-  attributes: {
-    accreditationAuthority: Schema.Attribute.String &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 200;
-      }>;
-    accreditationReference: Schema.Attribute.String &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 120;
-      }>;
-    accreditationScope: Schema.Attribute.String &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 160;
-      }>;
-    accreditationStatus: Schema.Attribute.Enumeration<
-      ['accredited', 'not_accredited', 'suspended', 'expired', 'unknown']
-    > &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'unknown'>;
-    accreditationValidFrom: Schema.Attribute.Date;
-    accreditationValidTo: Schema.Attribute.Date;
-    checkedAt: Schema.Attribute.DateTime;
-    country: Schema.Attribute.String &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 80;
-      }>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    evidenceUrl: Schema.Attribute.String &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 500;
-      }>;
-    kind: Schema.Attribute.Enumeration<
-      [
-        'university',
-        'college',
-        'training_provider',
-        'government',
-        'professional_body',
-        'employer',
-        'other',
-      ]
-    >;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::issuing-body.issuing-body'
-    > &
-      Schema.Attribute.Private;
-    name: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 200;
-      }>;
-    notes: Schema.Attribute.Text;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    website: Schema.Attribute.String &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 255;
-      }>;
-  };
-}
-
 export interface ApiJobPostingJobPosting extends Struct.CollectionTypeSchema {
   collectionName: 'job_postings';
   info: {
@@ -1676,71 +1558,6 @@ export interface ApiNavigationNavigation extends Struct.SingleTypeSchema {
       'api::navigation.navigation'
     >;
     publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiOccupationOccupation extends Struct.CollectionTypeSchema {
-  collectionName: 'occupations';
-  info: {
-    description: "The 'standard job description' a jobseeker's stated responsibilities are matched against (Andrew item 5). ISCO-08 chosen over O*NET (US-centric) and UK SOC (single country) because this is multi-corridor and pan-African.";
-    displayName: 'Occupation (ISCO-08)';
-    pluralName: 'occupations';
-    singularName: 'occupation';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-api': {
-      visible: false;
-    };
-    'content-manager': {
-      visible: true;
-    };
-  };
-  attributes: {
-    code: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 16;
-      }>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text;
-    level: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 4;
-          min: 1;
-        },
-        number
-      >;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::occupation.occupation'
-    > &
-      Schema.Attribute.Private;
-    parentCode: Schema.Attribute.String &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 16;
-      }>;
-    publishedAt: Schema.Attribute.DateTime;
-    scheme: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 32;
-      }> &
-      Schema.Attribute.DefaultTo<'ISCO-08'>;
-    title: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 200;
-      }>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2450,17 +2267,15 @@ declare module '@strapi/strapi' {
       'api::analytics-session.analytics-session': ApiAnalyticsSessionAnalyticsSession;
       'api::author.author': ApiAuthorAuthor;
       'api::blog-post.blog-post': ApiBlogPostBlogPost;
-      'api::candidate.candidate': ApiCandidateCandidate;
+      'api::category.category': ApiCategoryCategory;
       'api::community-signup.community-signup': ApiCommunitySignupCommunitySignup;
       'api::corridor.corridor': ApiCorridorCorridor;
       'api::design-token.design-token': ApiDesignTokenDesignToken;
       'api::form-definition.form-definition': ApiFormDefinitionFormDefinition;
       'api::form-submission.form-submission': ApiFormSubmissionFormSubmission;
-      'api::issuing-body.issuing-body': ApiIssuingBodyIssuingBody;
       'api::job-posting.job-posting': ApiJobPostingJobPosting;
       'api::legal-document.legal-document': ApiLegalDocumentLegalDocument;
       'api::navigation.navigation': ApiNavigationNavigation;
-      'api::occupation.occupation': ApiOccupationOccupation;
       'api::page.page': ApiPagePage;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::tag.tag': ApiTagTag;

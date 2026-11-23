@@ -67,6 +67,7 @@ const ALL_EDITORIAL_TYPES = [
   ...PUBLISHABLE_TYPES,
   'api::corridor.corridor',
   'api::tag.tag',
+  'api::category.category',
   'api::author.author',
   'api::form-definition.form-definition',
 ];
@@ -74,6 +75,7 @@ const ALL_EDITORIAL_TYPES = [
 const BLOG_ONLY = [
   'api::blog-post.blog-post',
   'api::tag.tag',
+  'api::category.category',
   'api::author.author',
 ];
 
