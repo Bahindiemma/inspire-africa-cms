@@ -1364,10 +1364,10 @@ export interface ApiJobPostingJobPosting extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     description: Schema.Attribute.Blocks & Schema.Attribute.Required;
     destinationCity: Schema.Attribute.String;
-    destinationCountry: Schema.Attribute.Enumeration<
-      ['UK', 'EU', 'USA', 'Canada', 'Australia', 'Mauritius', 'Saudi Arabia']
-    > &
-      Schema.Attribute.Required;
+    destinationCountry: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::corridor.corridor'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1384,21 +1384,7 @@ export interface ApiJobPostingJobPosting extends Struct.CollectionTypeSchema {
     salaryMin: Schema.Attribute.Decimal;
     salaryPeriod: Schema.Attribute.Enumeration<['hour', 'month', 'year']> &
       Schema.Attribute.DefaultTo<'year'>;
-    sector: Schema.Attribute.Enumeration<
-      [
-        'Healthcare',
-        'Care',
-        'Hospitality',
-        'Construction',
-        'Manufacturing',
-        'Agriculture',
-        'Tech',
-        'Mining',
-        'Logistics',
-        'Other',
-      ]
-    > &
-      Schema.Attribute.Required;
+    sector: Schema.Attribute.Relation<'manyToOne', 'api::sector.sector'>;
     seo: Schema.Attribute.Component<'shared.seo', false>;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
     status: Schema.Attribute.Enumeration<
@@ -1648,6 +1634,50 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSectorSector extends Struct.CollectionTypeSchema {
+  collectionName: 'sectors';
+  info: {
+    description: 'Job sectors editors pick on a Job Posting (Healthcare, Care, Hospitality, \u2026). Add one here or with "Create a relation" in a job\'s sector field.';
+    displayName: 'Sector';
+    pluralName: 'sectors';
+    singularName: 'sector';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 300;
+      }>;
+    job_postings: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::job-posting.job-posting'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::sector.sector'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }>;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSiteSettingSiteSetting extends Struct.SingleTypeSchema {
   collectionName: 'site_settings';
   info: {
@@ -1767,6 +1797,42 @@ export interface ApiTagTag extends Struct.CollectionTypeSchema {
       Schema.Attribute.Unique;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTestimonialLabelTestimonialLabel
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'testimonial_labels';
+  info: {
+    description: 'The label on a testimonial card (Worker voice, Employer voice, \u2026). Add one here or with "Create a relation" in a testimonial\'s label field.';
+    displayName: 'Testimonial Label';
+    pluralName: 'testimonial-labels';
+    singularName: 'testimonial-label';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::testimonial-label.testimonial-label'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 60;
+      }>;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2299,8 +2365,10 @@ declare module '@strapi/strapi' {
       'api::legal-document.legal-document': ApiLegalDocumentLegalDocument;
       'api::navigation.navigation': ApiNavigationNavigation;
       'api::page.page': ApiPagePage;
+      'api::sector.sector': ApiSectorSector;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::tag.tag': ApiTagTag;
+      'api::testimonial-label.testimonial-label': ApiTestimonialLabelTestimonialLabel;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

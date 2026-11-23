@@ -19,26 +19,18 @@
       "description": "Strapi native Blocks (rich-text) editor."
     },
     "destinationCountry": {
-      "type": "enumeration",
-      "enum": ["UK", "EU", "USA", "Canada", "Australia", "Mauritius", "Saudi Arabia"],
-      "required": true
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::corridor.corridor",
+      "description": "The destination corridor (UK, EU, USA, …). Pick one, or use \"Create a relation\" to add a new destination. A destination must be published before a job that uses it can be published. Destinations are the Corridor list, so a newly published one also appears in the homepage destinations strip."
     },
     "destinationCity": { "type": "string" },
     "sector": {
-      "type": "enumeration",
-      "enum": [
-        "Healthcare",
-        "Care",
-        "Hospitality",
-        "Construction",
-        "Manufacturing",
-        "Agriculture",
-        "Tech",
-        "Mining",
-        "Logistics",
-        "Other"
-      ],
-      "required": true
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::sector.sector",
+      "inversedBy": "job_postings",
+      "description": "Pick a sector, or use \"Create a relation\" to add a new one."
     },
     "salaryMin": { "type": "decimal" },
     "salaryMax": { "type": "decimal" },

@@ -10,6 +10,8 @@ import { registerCategoryGuards } from './bootstrap/category-guards';
 import { registerRichTextSync } from './bootstrap/rich-text-sync';
 import { registerBlogDates } from './bootstrap/blog-dates';
 import { migrateRichText } from './bootstrap/migrate-rich-text';
+import { migrateListFields } from './bootstrap/migrate-list-fields';
+import { registerListGuards } from './bootstrap/list-guards';
 
 export default {
   /**
@@ -21,6 +23,7 @@ export default {
     registerCategoryGuards(strapi);
     registerRichTextSync(strapi);
     registerBlogDates(strapi);
+    registerListGuards(strapi);
   },
 
   /**
@@ -41,6 +44,8 @@ export default {
     await ensurePublicApiToken(strapi);
     // Categories before content: the content seeder links posts to them.
     await migrateBlogCategories(strapi);
+    // Sector / destination / testimonial label lists (2026-11-24).
+    await migrateListFields(strapi);
     await seedContent(strapi);
 
     // 5. Optional: refresh ONLY the legal documents from legal-bodies.ts.
