@@ -1,12 +1,15 @@
 {
   "collectionName": "components_blocks_paragraphs",
-  "info": { "displayName": "Paragraph", "icon": "paragraph" },
+  "info": {
+    "displayName": "Paragraph",
+    "icon": "paragraph"
+  },
   "options": {},
   "attributes": {
     "text": {
       "type": "blocks",
       "required": true,
-      "description": "Strapi native Blocks editor — rich-text with inline formatting."
+      "description": "Rich text. Select words and use the toolbar for bold, italic, underline, strikethrough, code, lists, quotes and links. To add a link: select the words, click the link button, paste the address (e.g. https://www.ilo.org). Links to other websites open in a new tab. Everything shows on the website exactly as formatted here."
     }
   }
 }

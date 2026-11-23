@@ -7,7 +7,8 @@ export interface BlocksCallout extends Struct.ComponentSchema {
     icon: 'info-circle';
   };
   attributes: {
-    text: Schema.Attribute.Text & Schema.Attribute.Required;
+    content: Schema.Attribute.Blocks;
+    text: Schema.Attribute.Text;
     title: Schema.Attribute.String & Schema.Attribute.Required;
   };
 }
@@ -48,7 +49,8 @@ export interface BlocksLede extends Struct.ComponentSchema {
     icon: 'align-left';
   };
   attributes: {
-    text: Schema.Attribute.Text & Schema.Attribute.Required;
+    content: Schema.Attribute.Blocks;
+    text: Schema.Attribute.Text;
   };
 }
 
@@ -59,7 +61,8 @@ export interface BlocksList extends Struct.ComponentSchema {
     icon: 'list-ul';
   };
   attributes: {
-    items: Schema.Attribute.JSON & Schema.Attribute.Required;
+    content: Schema.Attribute.Blocks;
+    items: Schema.Attribute.JSON;
     ordered: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
   };
 }
@@ -83,7 +86,8 @@ export interface BlocksQuote extends Struct.ComponentSchema {
   };
   attributes: {
     attribution: Schema.Attribute.String;
-    text: Schema.Attribute.Text & Schema.Attribute.Required;
+    content: Schema.Attribute.Blocks;
+    text: Schema.Attribute.Text;
   };
 }
 

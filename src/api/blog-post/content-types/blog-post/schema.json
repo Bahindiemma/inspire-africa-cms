@@ -5,7 +5,7 @@
     "singularName": "blog-post",
     "pluralName": "blog-posts",
     "displayName": "Blog Post",
-    "description": "Editorial article \u2014 surfaced on the home Insights section and on /blog/[slug]."
+    "description": "Editorial article — surfaced on the home Insights section and on /blog/[slug]."
   },
   "options": {
     "draftAndPublish": true
@@ -62,7 +62,7 @@
     },
     "heroImageCredit": {
       "type": "string",
-      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: \u2026\" \u2014 type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
+      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: …\" — type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
     },
     "heroAlt": {
       "type": "string",
@@ -78,6 +78,30 @@
       "min": 1,
       "max": 60,
       "description": "Auto-computed by the lifecycle on save from body word count."
+    },
+    "dateDisplay": {
+      "type": "enumeration",
+      "enum": [
+        "useSiteSetting",
+        "alwaysShow",
+        "alwaysHide"
+      ],
+      "default": "useSiteSetting",
+      "description": "Whether this post's date shows on the website. 'useSiteSetting' follows the Show Blog Dates switch in Site Setting.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "displayDate": {
+      "type": "date",
+      "description": "The date shown on the website when dates are on. Filled in automatically the first time the post is published; change it to show a different date. Re-publishing does not change it.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
     },
     "author": {
       "type": "relation",
