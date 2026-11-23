@@ -14,6 +14,7 @@
  * `.tmp/data.db` (dev) or truncate the relevant tables (prod).
  */
 import type { Core } from '@strapi/strapi';
+import { BLOG_BODIES } from './blog-bodies';
 import { LEGAL_BODIES } from './legal-bodies';
 import { seedAllMedia, attachSectionPhotos } from './seed-media';
 
@@ -247,10 +248,10 @@ export async function seedContent(strapi: Core.Strapi) {
   strapi.log.info(`[seed-content] ${tagNames.length} tags upserted`);
 
   // ---------- 7. Blog Posts (3) ----------
-  // Bodies are abbreviated here to keep the seed file manageable; the
-  // full text from lib/blogs.ts can be pasted in once the editor is
-  // comfortable with the Block editor UX. The seed produces fully
-  // valid, publishable documents either way.
+  // Full article bodies come from blog-bodies.ts (verbatim from the
+  // website's lib/blogs.ts). Until 2026-11-23 this seeded abbreviated
+  // bodies, and the live site showed them; recover-blog-bodies.ts fixed
+  // the existing database.
   const posts = [
     {
       slug: 'the-real-cost-of-free-migration',
@@ -260,12 +261,7 @@ export async function seedContent(strapi: Core.Strapi) {
       category: 'Ethical Recruitment',
       heroAlt: 'Nigerian construction workers erecting rebar columns — the source-side reality of the labour pipelines feeding Gulf-corridor recruitment',
       tags: ['Worker protection', 'Recruitment fees', 'Gulf corridor', 'Policy'],
-      body: [
-        { __component: 'blocks.lede', text: 'The official position across most destination markets is unambiguous: workers should not pay to be recruited. The lived reality in 2026 is something else.' },
-        { __component: 'blocks.heading', text: 'The gap between policy and practice', level: 'h2' },
-        { __component: 'blocks.paragraph', text: [{ type: 'paragraph', children: [{ type: 'text', text: 'Eighteen destination countries have now adopted some version of the "employer pays" principle in their published recruitment guidance.' }] }] },
-        { __component: 'blocks.callout', title: 'What the 2025 ILO corridor study found', text: 'Median fee burden along West Africa → Gulf hospitality corridors: $2,800–$4,200 per worker. Less than 11% of workers surveyed reported receiving an itemised invoice.' },
-      ],
+      body: BLOG_BODIES['the-real-cost-of-free-migration'],
     },
     {
       slug: 'uk-care-visa-2026-what-african-workers-need-to-know',
@@ -275,15 +271,7 @@ export async function seedContent(strapi: Core.Strapi) {
       category: 'Policy & Markets',
       heroAlt: 'UK Home Office · UK Visas & Immigration signage (photo: PA)',
       tags: ['United Kingdom', 'Healthcare', 'Visa policy', 'NHS'],
-      body: [
-        { __component: 'blocks.lede', text: 'The UK\'s adult social-care vacancy rate sits above 8.3% as we go to publication.' },
-        { __component: 'blocks.heading', text: 'What the 2026 changes actually do', level: 'h2' },
-        { __component: 'blocks.list', ordered: false, items: [
-          'Raised the minimum hourly threshold for sponsorship in adult social care.',
-          'Tightened sponsor licence conditions: care providers now face stricter scrutiny.',
-          'Introduced a new requirement for sponsors to evidence local-recruitment efforts.',
-        ] },
-      ],
+      body: BLOG_BODIES['uk-care-visa-2026-what-african-workers-need-to-know'],
     },
     {
       slug: 'from-remittance-to-reinvestment-earn-learn-return',
@@ -293,15 +281,7 @@ export async function seedContent(strapi: Core.Strapi) {
       category: 'Development Economics',
       heroAlt: 'ILO report cover — Minimum wages in Africa: wage disparities and the redistributive potential of minimum wages (ILO, 2025)',
       tags: ['Remittances', 'Circular migration', 'Economic development'],
-      body: [
-        { __component: 'blocks.lede', text: 'Remittances to Sub-Saharan Africa crossed $100 billion in 2025 — larger than total FDI and three times official development assistance.' },
-        { __component: 'blocks.heading', text: 'What Earn-Learn-Return actually means', level: 'h2' },
-        { __component: 'blocks.list', ordered: true, items: [
-          'Earn — the worker accesses a higher-wage market through a fair pathway.',
-          'Learn — the placement is treated as a skills-development stage.',
-          'Return — the return is anticipated, supported and connected to a reintegration pathway.',
-        ] },
-      ],
+      body: BLOG_BODIES['from-remittance-to-reinvestment-earn-learn-return'],
     },
   ];
 
