@@ -7,9 +7,10 @@
     "name": { "type": "string", "required": true },
     "role": { "type": "string", "required": true },
     "flag": {
-      "type": "enumeration",
-      "enum": ["Worker voice", "Employer voice", "Government voice", "Partner voice"],
-      "required": true
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::testimonial-label.testimonial-label",
+      "description": "The label on the card (Worker voice, Employer voice, …). Pick one, or use \"Create a relation\" to add a new label."
     },
     "photo": {
       "type": "media",
