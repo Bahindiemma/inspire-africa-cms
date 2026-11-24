@@ -460,6 +460,96 @@ export interface SectionsTestimonials extends Struct.ComponentSchema {
   };
 }
 
+export interface SectionsXFeed extends Struct.ComponentSchema {
+  collectionName: 'components_sections_x_feeds';
+  info: {
+    description: "The latest posts from one X (Twitter) account, with the author's name and photo.";
+    displayName: 'X feed';
+    icon: 'message';
+  };
+  attributes: {
+    authorName: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }> &
+      Schema.Attribute.DefaultTo<'Andrew Pound'>;
+    authorPhoto: Schema.Attribute.Media<'images'>;
+    authorPhotoAlt: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    authorPhotoCaption: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    authorTitle: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }> &
+      Schema.Attribute.DefaultTo<'Chief Executive Officer, INSPIRE AFRICA'>;
+    curatedPostUrls: Schema.Attribute.Text;
+    disclaimer: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }> &
+      Schema.Attribute.DefaultTo<"Posts from Andrew Pound's personal X account.">;
+    eyebrow: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 80;
+      }> &
+      Schema.Attribute.DefaultTo<'Straight from the field'>;
+    followCtaLabel: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 60;
+      }> &
+      Schema.Attribute.DefaultTo<'Follow @andrewpound on X'>;
+    headingLine1: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 60;
+      }> &
+      Schema.Attribute.DefaultTo<'In his'>;
+    headingLine2: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 60;
+      }> &
+      Schema.Attribute.DefaultTo<'own words.'>;
+    hiddenPostIds: Schema.Attribute.Text;
+    includeReplies: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    includeReposts: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    intro: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'What our CEO is seeing, saying and sharing on X: labour mobility, migration policy and the people building the pathways.'>;
+    onlyWithKeywords: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 300;
+      }>;
+    postCount: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 4;
+          min: 3;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<4>;
+    whenUnavailable: Schema.Attribute.Enumeration<
+      ['show_author_card', 'hide_section']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'show_author_card'>;
+    xHandle: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 16;
+      }> &
+      Schema.Attribute.DefaultTo<'andrewpound'>;
+  };
+}
+
 export interface SharedCta extends Struct.ComponentSchema {
   collectionName: 'components_shared_ctas';
   info: {
@@ -629,6 +719,7 @@ declare module '@strapi/strapi' {
       'sections.process-list': SectionsProcessList;
       'sections.step-cards': SectionsStepCards;
       'sections.testimonials': SectionsTestimonials;
+      'sections.x-feed': SectionsXFeed;
       'shared.cta': SharedCta;
       'shared.footer-column': SharedFooterColumn;
       'shared.nav-link': SharedNavLink;

@@ -18,6 +18,7 @@ import { BLOG_BODIES } from './blog-bodies';
 import { LEGAL_BODIES } from './legal-bodies';
 import { seedAllMedia, attachSectionPhotos } from './seed-media';
 import { SEED_CAPTIONS } from './image-captions';
+import { X_FEED_DEFAULTS } from './x-feed';
 
 // Blog slug → bundled hero image (photoUrl form). Keeps blog hero images
 // in the Media Library too, matching the frontend's per-slug fallback.
@@ -434,6 +435,7 @@ export async function seedContent(strapi: Core.Strapi) {
       ctaLabel: 'Read the piece',
       ctaHref: '/blog',
     },
+    { __component: 'sections.x-feed', ...X_FEED_DEFAULTS },
     {
       __component: 'sections.final-cta',
       eyebrow: 'Your move',

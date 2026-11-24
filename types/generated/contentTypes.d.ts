@@ -1608,6 +1608,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
         'sections.process-list',
         'sections.step-cards',
         'sections.insights-strip',
+        'sections.x-feed',
         'sections.form-block',
         'sections.final-cta',
       ]
