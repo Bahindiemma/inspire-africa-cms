@@ -15,7 +15,6 @@ import { recoverBlogBodies } from './bootstrap/recover-blog-bodies';
 import { registerListGuards } from './bootstrap/list-guards';
 import { registerCaptionGuards } from './bootstrap/caption-guards';
 import { configureCaptionFields, seedImageCaptions } from './bootstrap/image-captions';
-import { addXFeedToHome, configureXFeedFields } from './bootstrap/x-feed';
 import { registerProtectedAdmin, loadProtectedAdmin } from './bootstrap/protected-admin';
 import { cleanupAdminRoles } from './bootstrap/cleanup-admin-roles';
 
@@ -108,15 +107,6 @@ export default {
     const roles = String(process.env.ADMIN_ROLES_CLEANUP || '').toLowerCase();
     if (roles === 'dry-run' || roles === 'apply') {
       await cleanupAdminRoles(strapi, roles);
-    }
-
-    // 11. X feed section (2026-11-24): editor labels (once), and a one-off
-    //     that adds the section to the live home page without re-publishing.
-    //     ADD_X_FEED=dry-run logs the plan; =apply does it.
-    await configureXFeedFields(strapi);
-    const xfeed = String(process.env.ADD_X_FEED || '').toLowerCase();
-    if (xfeed === 'dry-run' || xfeed === 'apply') {
-      await addXFeedToHome(strapi, xfeed);
     }
 
     strapi.log.info('[bootstrap] inspire-africa-cms is ready.');

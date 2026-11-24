@@ -9,7 +9,6 @@ import { errors } from '@strapi/utils';
  *  - Page: the hero photo, every audience card and every testimonial card with
  *    a photo needs "Photo caption". The hero's yellow bar (photoCaptionTitle /
  *    photoCaptionSub) is an optional tagline, not the caption.
- *  - Page: an X feed section with an author photo needs "Photo caption".
  *  - Blog Post: the cover image needs "Image caption"; every Image block in the
  *    body needs its caption.
  *
@@ -45,10 +44,6 @@ export function missingPageCaptions(sections: any[]): string[] {
         if (hasPhoto(c.photo, c.photoUrl) && !filled(c.photoCaption)) {
           missing.push(`the photo on the "${c.title || 'untitled'}" card ("Photo caption")`);
         }
-      }
-    } else if (s.__component === 'sections.x-feed') {
-      if (hasPhoto(s.authorPhoto) && !filled(s.authorPhotoCaption)) {
-        missing.push(`the author photo in the X feed section ("Photo caption")`);
       }
     } else if (s.__component === 'sections.testimonials') {
       for (const c of s.items ?? []) {
@@ -97,7 +92,6 @@ export function registerCaptionGuards(strapi: Core.Strapi) {
               'sections.hero': { populate: { photo: { fields: ['id'] } } },
               'sections.audiences': { populate: { cards: { populate: { photo: { fields: ['id'] } } } } },
               'sections.testimonials': { populate: { items: { populate: { photo: { fields: ['id'] } } } } },
-              'sections.x-feed': { populate: { authorPhoto: { fields: ['id'] } } },
             },
           },
         },
