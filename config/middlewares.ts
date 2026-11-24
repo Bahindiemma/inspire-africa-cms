@@ -72,6 +72,9 @@ export default ({ env }: { env: any }) => [
   // Custom: hard-close the public admin register endpoint once an
   // admin exists (defence in depth on top of Strapi's own check).
   'global::disable-public-register',
+  // Custom: the protected admin account can't be deleted or deactivated
+  // (src/bootstrap/protected-admin.ts). After strapi::body, so the body is parsed.
+  'global::protected-admin',
   // Custom: fire a revalidation webhook at the Next.js app on publish.
   'global::revalidate-frontend',
 ];

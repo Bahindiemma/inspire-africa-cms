@@ -15,6 +15,8 @@ import { recoverBlogBodies } from './bootstrap/recover-blog-bodies';
 import { registerListGuards } from './bootstrap/list-guards';
 import { registerCaptionGuards } from './bootstrap/caption-guards';
 import { configureCaptionFields, seedImageCaptions } from './bootstrap/image-captions';
+import { registerProtectedAdmin, loadProtectedAdmin } from './bootstrap/protected-admin';
+import { cleanupAdminRoles } from './bootstrap/cleanup-admin-roles';
 
 export default {
   /**
@@ -28,6 +30,7 @@ export default {
     registerBlogDates(strapi);
     registerListGuards(strapi);
     registerCaptionGuards(strapi);
+    registerProtectedAdmin(strapi);
   },
 
   /**
@@ -43,6 +46,8 @@ export default {
    *                           string from the Next.js app into Strapi
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    // First: nothing below may change the protected admin account.
+    await loadProtectedAdmin(strapi);
     await seedRoles(strapi);
     await seedAdminRoles(strapi);
     await ensurePublicApiToken(strapi);
@@ -94,6 +99,14 @@ export default {
     const captions = String(process.env.SEED_IMAGE_CAPTIONS || '').toLowerCase();
     if (captions === 'dry-run' || captions === 'apply') {
       await seedImageCaptions(strapi, captions);
+    }
+
+    // 10. One-off (2026-11-24): delete the redundant admin roles and take the
+    //     extra roles off users who are Super Admins anyway.
+    //     ADMIN_ROLES_CLEANUP=dry-run logs the plan; =apply does it.
+    const roles = String(process.env.ADMIN_ROLES_CLEANUP || '').toLowerCase();
+    if (roles === 'dry-run' || roles === 'apply') {
+      await cleanupAdminRoles(strapi, roles);
     }
 
     strapi.log.info('[bootstrap] inspire-africa-cms is ready.');

@@ -90,14 +90,6 @@ const ANALYTICS_TYPES = [
   'api::analytics-daily-rollup.analytics-daily-rollup',
 ];
 
-const ALL_READABLE = [
-  ...ALL_EDITORIAL_TYPES,
-  'api::site-setting.site-setting',
-  'api::design-token.design-token',
-  'api::navigation.navigation',
-  ...ANALYTICS_TYPES,
-];
-
 const ROLE_SPECS: AdminRoleSpec[] = [
   {
     name: 'Content Manager',
@@ -163,14 +155,8 @@ const ROLE_SPECS: AdminRoleSpec[] = [
       'plugin::content-manager.explorer.publish',
     ],
   },
-  {
-    name: 'Read-only Viewer',
-    code: 'inspire-readonly',
-    description:
-      'Read access to every collection. Useful for stakeholders who want to preview the CMS without risk of accidental edits.',
-    contentTypes: ALL_READABLE,
-    actions: ['plugin::content-manager.explorer.read'],
-  },
+  // 'Read-only Viewer' (inspire-readonly) was removed on 2026-11-24 at the
+  // client's request: nobody used it. cleanup-admin-roles.ts deletes it.
 ];
 
 export async function seedAdminRoles(strapi: Core.Strapi) {
