@@ -1,11 +1,23 @@
 {
   "collectionName": "components_cards_testimonials",
-  "info": { "displayName": "Testimonial", "icon": "quote-right" },
+  "info": {
+    "displayName": "Testimonial",
+    "icon": "quote-right"
+  },
   "options": {},
   "attributes": {
-    "quote": { "type": "text", "required": true },
-    "name": { "type": "string", "required": true },
-    "role": { "type": "string", "required": true },
+    "quote": {
+      "type": "text",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "role": {
+      "type": "string",
+      "required": true
+    },
     "flag": {
       "type": "relation",
       "relation": "manyToOne",
@@ -15,9 +27,18 @@
     "photo": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": ["images"],
+      "allowedTypes": [
+        "images"
+      ],
       "required": true
     },
-    "photoAlt": { "type": "string" }
+    "photoCaption": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "One short line under the photo saying what or who it shows, or why it is here (about 140 characters at most). Not the photographer credit: that goes in the credit field and shows as “Photo By:”. Don't repeat the headline. Required to publish when a photo is set."
+    },
+    "photoAlt": {
+      "type": "string"
+    }
   }
 }

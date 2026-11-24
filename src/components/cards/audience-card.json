@@ -27,11 +27,16 @@
     },
     "photoCredit": {
       "type": "string",
-      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: \u2026\" \u2014 type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
+      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: …\" — type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
+    },
+    "photoCaption": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "One short line under the photo saying what or who it shows, or why it is here (about 140 characters at most). Not the photographer credit: that goes in the credit field and shows as “Photo By:”. Don't repeat the headline. Required to publish when a photo is set."
     },
     "photoUrl": {
       "type": "string",
-      "description": "Optional override URL \u2014 used by the bootstrap seed to point at pre-existing /public/images/* assets without uploading via the Media Library. Editors should use the `photo` media field; frontend reads `photo.url ?? photoUrl`."
+      "description": "Optional override URL — used by the bootstrap seed to point at pre-existing /public/images/* assets without uploading via the Media Library. Editors should use the `photo` media field; frontend reads `photo.url ?? photoUrl`."
     },
     "photoAlt": {
       "type": "string"

@@ -64,6 +64,16 @@
       "type": "string",
       "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: …\" — type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
     },
+    "heroImageCaption": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "One short line under the photo saying what or who it shows, or why it is here (about 140 characters at most). Not the photographer credit: that goes in the credit field and shows as “Photo By:”. Don't repeat the headline. Required to publish when a photo is set.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
     "heroAlt": {
       "type": "string",
       "required": true,

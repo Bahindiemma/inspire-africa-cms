@@ -13,6 +13,8 @@ import { migrateRichText } from './bootstrap/migrate-rich-text';
 import { migrateListFields } from './bootstrap/migrate-list-fields';
 import { recoverBlogBodies } from './bootstrap/recover-blog-bodies';
 import { registerListGuards } from './bootstrap/list-guards';
+import { registerCaptionGuards } from './bootstrap/caption-guards';
+import { configureCaptionFields, seedImageCaptions } from './bootstrap/image-captions';
 
 export default {
   /**
@@ -25,6 +27,7 @@ export default {
     registerRichTextSync(strapi);
     registerBlogDates(strapi);
     registerListGuards(strapi);
+    registerCaptionGuards(strapi);
   },
 
   /**
@@ -81,6 +84,16 @@ export default {
     const recover = String(process.env.RECOVER_BLOG_BODIES || '').toLowerCase();
     if (recover === 'dry-run' || recover === 'apply') {
       await recoverBlogBodies(strapi, recover);
+    }
+
+    // 9. Image captions (2026-11-24): label the caption fields in the editor
+    //    (once), then optionally load the client-approved captions.
+    //    SEED_IMAGE_CAPTIONS=dry-run logs the plan; =apply fills empty fields.
+    //    Run once, then recreate without it.
+    await configureCaptionFields(strapi);
+    const captions = String(process.env.SEED_IMAGE_CAPTIONS || '').toLowerCase();
+    if (captions === 'dry-run' || captions === 'apply') {
+      await seedImageCaptions(strapi, captions);
     }
 
     strapi.log.info('[bootstrap] inspire-africa-cms is ready.');
