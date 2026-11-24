@@ -17,6 +17,7 @@ import type { Core } from '@strapi/strapi';
 import { BLOG_BODIES } from './blog-bodies';
 import { LEGAL_BODIES } from './legal-bodies';
 import { seedAllMedia, attachSectionPhotos } from './seed-media';
+import { SEED_CAPTIONS } from './image-captions';
 
 // Blog slug → bundled hero image (photoUrl form). Keeps blog hero images
 // in the Media Library too, matching the frontend's per-slug fallback.
@@ -299,6 +300,7 @@ export async function seedContent(strapi: Core.Strapi) {
       excerpt: p.excerpt,
       category: categoryDoc?.documentId,
       heroAlt: p.heroAlt,
+      heroImageCaption: SEED_CAPTIONS[p.slug],
       readMinutes: 7,
       body: p.body,
       tags: tagDocs.filter(Boolean).map((t: any) => t.documentId),
@@ -406,9 +408,9 @@ export async function seedContent(strapi: Core.Strapi) {
       headingHtml: 'Three audiences.<br/><span class="yellow">One platform.</span>',
       lede: 'Workers are our primary audience. Employers and governments engage through trusted pathways.',
       cards: [
-        { number: '01', title: 'Access global work', body: 'Fair, structured pathways with preparation, support and salary-linked finance — so you can work abroad and bring the gains home.', tag: 'For Workers', ctaLabel: 'Start Your Journey', ctaHref: '/workers', isPrimary: true, photoUrl: '/images/home-card-workers-construction.jpg', photoAlt: 'African construction worker focused on hammering nails into a wooden frame' },
-        { number: '02', title: 'Hire with confidence', body: 'Pre-qualified African talent. Ethical recruitment with faster mobilisation.', tag: 'For Employers', ctaLabel: 'Talk to Us', ctaHref: '/employers', isPrimary: false, photoUrl: '/images/home-card-employers-hospitality.jpg', photoAlt: 'Three Ugandan chefs cooking over an open flame in a busy hospitality kitchen' },
-        { number: '03', title: 'Build mobility systems', body: 'Structured, ethical labour pathways aligned with national strategy and long-term capability.', tag: 'For Governments', ctaLabel: 'Explore a Partnership', ctaHref: '/governments', isPrimary: false, photoUrl: '/images/home-card-governments-agriculture.jpg', photoAlt: 'Wide view of Nigerian farmers working together across a rice field — workforce at scale' },
+        { number: '01', title: 'Access global work', photoCaption: SEED_CAPTIONS['Access global work'], body: 'Fair, structured pathways with preparation, support and salary-linked finance — so you can work abroad and bring the gains home.', tag: 'For Workers', ctaLabel: 'Start Your Journey', ctaHref: '/workers', isPrimary: true, photoUrl: '/images/home-card-workers-construction.jpg', photoAlt: 'African construction worker focused on hammering nails into a wooden frame' },
+        { number: '02', title: 'Hire with confidence', photoCaption: SEED_CAPTIONS['Hire with confidence'], body: 'Pre-qualified African talent. Ethical recruitment with faster mobilisation.', tag: 'For Employers', ctaLabel: 'Talk to Us', ctaHref: '/employers', isPrimary: false, photoUrl: '/images/home-card-employers-hospitality.jpg', photoAlt: 'Three Ugandan chefs cooking over an open flame in a busy hospitality kitchen' },
+        { number: '03', title: 'Build mobility systems', photoCaption: SEED_CAPTIONS['Build mobility systems'], body: 'Structured, ethical labour pathways aligned with national strategy and long-term capability.', tag: 'For Governments', ctaLabel: 'Explore a Partnership', ctaHref: '/governments', isPrimary: false, photoUrl: '/images/home-card-governments-agriculture.jpg', photoAlt: 'Wide view of Nigerian farmers working together across a rice field — workforce at scale' },
       ],
     },
     {

@@ -840,6 +840,15 @@ export interface ApiBlogPostBlogPost extends Struct.CollectionTypeSchema {
         };
       }>;
     heroImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    heroImageCaption: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
     heroImageCredit: Schema.Attribute.String;
     locale: Schema.Attribute.String;
     localizations: Schema.Attribute.Relation<

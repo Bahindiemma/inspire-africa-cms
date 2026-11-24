@@ -144,6 +144,10 @@ export interface CardsAudienceCard extends Struct.ComponentSchema {
     number: Schema.Attribute.String & Schema.Attribute.DefaultTo<'01'>;
     photo: Schema.Attribute.Media<'images'>;
     photoAlt: Schema.Attribute.String;
+    photoCaption: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
     photoCredit: Schema.Attribute.String;
     photoUrl: Schema.Attribute.String;
     tag: Schema.Attribute.String;
@@ -217,6 +221,10 @@ export interface CardsTestimonial extends Struct.ComponentSchema {
     name: Schema.Attribute.String & Schema.Attribute.Required;
     photo: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
     photoAlt: Schema.Attribute.String;
+    photoCaption: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
     quote: Schema.Attribute.Text & Schema.Attribute.Required;
     role: Schema.Attribute.String & Schema.Attribute.Required;
   };
