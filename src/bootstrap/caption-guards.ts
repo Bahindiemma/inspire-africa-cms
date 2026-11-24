@@ -6,8 +6,9 @@ import { errors } from '@strapi/utils';
  * refused while a photo has none; drafts can still be saved, so an editor can
  * work on a page and add the caption before it goes live.
  *
- *  - Page: the hero photo needs "Caption — title" or "Caption — line 2"; every
- *    audience card and testimonial card with a photo needs "Photo caption".
+ *  - Page: the hero photo, every audience card and every testimonial card with
+ *    a photo needs "Photo caption". The hero's yellow bar (photoCaptionTitle /
+ *    photoCaptionSub) is an optional tagline, not the caption.
  *  - Blog Post: the cover image needs "Image caption"; every Image block in the
  *    body needs its caption.
  *
@@ -35,8 +36,8 @@ export function missingPageCaptions(sections: any[]): string[] {
   const missing: string[] = [];
   for (const s of sections ?? []) {
     if (s.__component === 'sections.hero') {
-      if (!s.centered && hasPhoto(s.photo, s.photoUrl) && !filled(s.photoCaptionTitle) && !filled(s.photoCaptionSub)) {
-        missing.push('the hero photo ("Caption — title")');
+      if (!s.centered && hasPhoto(s.photo, s.photoUrl) && !filled(s.photoCaption)) {
+        missing.push('the hero photo ("Photo caption")');
       }
     } else if (s.__component === 'sections.audiences') {
       for (const c of s.cards ?? []) {
