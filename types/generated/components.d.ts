@@ -340,6 +340,10 @@ export interface SectionsHero extends Struct.ComponentSchema {
     lede: Schema.Attribute.Text & Schema.Attribute.Required;
     photo: Schema.Attribute.Media<'images'>;
     photoAlt: Schema.Attribute.String;
+    photoCaption: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
     photoCaptionSub: Schema.Attribute.String;
     photoCaptionTitle: Schema.Attribute.String;
     photoCredit: Schema.Attribute.String;

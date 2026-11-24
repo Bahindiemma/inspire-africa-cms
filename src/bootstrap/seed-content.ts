@@ -390,6 +390,7 @@ export async function seedContent(strapi: Core.Strapi) {
       lede: 'INSPIRE AFRICA connects skilled African workers, employers and governments through governed migration pathways, predictive screening and migration finance.',
       photoUrl: '/images/home-hero-healthcare.jpg',
       photoAlt: 'African doctor walking a patient through their diagnosis in a hospital corridor',
+      photoCaption: SEED_CAPTIONS['hero:home'],
       photoCaptionTitle: 'Ready Now',
       photoCaptionSub: '3-tier readiness pipeline',
       ctas: [
@@ -569,6 +570,7 @@ const WORKERS_PAGE = {
       lede: 'Access real international job opportunities with fair recruitment, structured preparation and no large up-front costs.',
       photoUrl: '/images/workers-hero-nurse.jpg',
       photoAlt: "African nurse measuring a patient's blood pressure during a clinical assessment",
+      photoCaption: SEED_CAPTIONS['hero:workers'],
       photoCaptionTitle: 'Fair · Transparent',
       photoCaptionSub: 'Protected at every step',
       ctas: [
@@ -637,6 +639,7 @@ const EMPLOYERS_PAGE = {
       lede: 'Access a reliable pipeline of pre-screened, job-ready African talent through a single, compliant platform.',
       photoUrl: '/images/employers-hero-kitchen.jpg',
       photoAlt: 'Brigade of African chefs working through service in a busy professional kitchen',
+      photoCaption: SEED_CAPTIONS['hero:employers'],
       photoCaptionTitle: 'Ready Now',
       photoCaptionSub: 'Pre-screened, prepared, deployable',
       ctas: [
@@ -720,6 +723,7 @@ const GOVERNMENTS_PAGE = {
       lede: 'INSPIRE AFRICA provides the tools and infrastructure to build transparent, scalable and circular labour mobility pathways.',
       photoUrl: '/images/governments-hero-market.jpg',
       photoAlt: 'Busy Senegalese market scene — traders and buyers moving goods through a working commercial corridor',
+      photoCaption: SEED_CAPTIONS['hero:governments'],
       photoCaptionTitle: 'Systems-led',
       photoCaptionSub: 'From migration to mobility infrastructure',
       ctas: [
@@ -792,6 +796,7 @@ const APPROACH_PAGE = {
       lede: 'A structured system for global labour mobility — built around four principles: ethical, circular, structured, worker-centred.',
       photoUrl: '/images/approach-hero-tailor.jpg',
       photoAlt: 'African tailor focused on a stitching task — skilled, hands-on work being built into a career',
+      photoCaption: SEED_CAPTIONS['hero:approach'],
       photoCaptionTitle: 'Earn · Learn · Return',
       photoCaptionSub: 'The circular model',
       ctas: [
@@ -852,6 +857,7 @@ const JOIN_PAGE = {
       lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
       photoUrl: '/images/join-hero-construction-team.jpg',
       photoAlt: 'African construction crew in safety gear working together on a building site',
+      photoCaption: SEED_CAPTIONS['hero:join'],
       photoCaptionTitle: 'Free Forever',
       photoCaptionSub: 'No paywalls. No hidden fees.',
       ctas: [

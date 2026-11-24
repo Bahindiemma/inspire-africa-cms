@@ -36,6 +36,12 @@ export interface CardCaption {
   file: string;
   caption: string;
 }
+export interface HeroCaption {
+  /** The page slug. */
+  page: string;
+  file: string;
+  caption: string;
+}
 export interface AltFix {
   kind: 'hero' | 'card';
   /** Hero: the page slug. Card: the card title. */
@@ -67,6 +73,16 @@ export const CARD_CAPTIONS: CardCaption[] = [
   { title: 'Build mobility systems', file: 'Abuja Conference.png', caption: 'Delegates at the SASASNET 3rd Annual Regional Conference in Abuja.' },
 ];
 
+/** Page hero photos, as live on 2026-11-24 (added after the client asked for hero captions too). */
+export const HERO_CAPTIONS: HeroCaption[] = [
+  { page: 'home', file: '360_F_411430356_aleaRb5NuOb6IWLlnsgAZo1xClUfG1sg.jpg', caption: 'A worker in a hard hat and safety glasses inspecting steel pipes in a factory.' },
+  { page: 'approach', file: 'Qwerqu Mcbrew.jpg', caption: 'A craftsman weaving cane furniture by hand.' },
+  { page: 'workers', file: 'workers-hero-nurse.jpg', caption: 'A nurse caring for a patient in a hospital room.' },
+  { page: 'employers', file: 'employers-hero-kitchen.jpg', caption: 'Kitchen staff preparing dishes during service.' },
+  { page: 'governments', file: 'Abuja Conference.png', caption: 'Delegates at the SASASNET 3rd Annual Regional Conference in Abuja.' },
+  { page: 'join', file: 'join-hero-construction-team.jpg', caption: 'A construction crew in safety gear working together on a building site.' },
+];
+
 /** Alt text that describes a different photo from the one now shown. */
 export const ALT_FIXES: AltFix[] = [
   {
@@ -83,6 +99,27 @@ export const ALT_FIXES: AltFix[] = [
     from: 'Wide view of Nigerian farmers working together across a rice field — workforce at scale',
     to: 'Team photo from the SASASNET 3rd Annual Regional Conference in Abuja',
   },
+  {
+    kind: 'hero',
+    where: 'home',
+    file: '360_F_411430356_aleaRb5NuOb6IWLlnsgAZo1xClUfG1sg.jpg',
+    from: 'African doctor walking a patient through their diagnosis in a hospital corridor',
+    to: 'Worker in a hard hat and safety glasses inspecting steel pipes in a factory',
+  },
+  {
+    kind: 'hero',
+    where: 'approach',
+    file: 'Qwerqu Mcbrew.jpg',
+    from: 'African tailor focused on a stitching task — skilled, hands-on work being built into a career',
+    to: 'Craftsman weaving cane furniture by hand — skilled, hands-on work being built into a career',
+  },
+  {
+    kind: 'hero',
+    where: 'employers',
+    file: 'employers-hero-kitchen.jpg',
+    from: 'Brigade of African chefs working through service in a busy professional kitchen',
+    to: 'Kitchen staff in masks preparing dishes during service in a professional kitchen',
+  },
 ];
 
 /**
@@ -96,6 +133,12 @@ export const SEED_CAPTIONS: Record<string, string> = {
   'Access global work': 'A construction worker hammering timber on a building site.',
   'Hire with confidence': 'Chefs cooking over an open flame in a busy hospitality kitchen.',
   'Build mobility systems': 'Farmers working together across a rice field.',
+  'hero:home': 'A doctor talking a patient through a diagnosis in a hospital corridor.',
+  'hero:workers': "A nurse measuring a patient's blood pressure.",
+  'hero:employers': 'Chefs working through service in a busy professional kitchen.',
+  'hero:governments': 'Traders and buyers at a busy market in Senegal.',
+  'hero:approach': 'A tailor at work on a stitching task.',
+  'hero:join': 'A construction crew in safety gear working together on a building site.',
 };
 
 const empty = (v: unknown) => !(typeof v === 'string' && v.trim() !== '');
@@ -141,6 +184,22 @@ export async function seedImageCaptions(strapi: Core.Strapi, mode: 'dry-run' | '
       } else {
         out.push(`card "${c.title}" #${r.id}: ${mode === 'apply' ? 'SET' : 'WOULD SET'} "${c.caption}"`);
         if (mode === 'apply') await strapi.db.query(CARD as any).update({ where: { id: r.id }, data: { photoCaption: c.caption } });
+        writes++;
+      }
+    }
+  }
+
+  for (const c of HERO_CAPTIONS) {
+    const rows = await heroesOnPage(strapi, c.page);
+    if (!rows.length) out.push(`hero "${c.page}": SKIPPED (not found)`);
+    for (const r of rows) {
+      if (r.photo?.name !== c.file) {
+        out.push(`hero "${c.page}" #${r.id}: SKIPPED, the photo is now "${r.photo?.name ?? 'none'}", not "${c.file}"`);
+      } else if (!empty(r.photoCaption)) {
+        out.push(`hero "${c.page}" #${r.id}: kept the editor's caption "${r.photoCaption}"`);
+      } else {
+        out.push(`hero "${c.page}" #${r.id}: ${mode === 'apply' ? 'SET' : 'WOULD SET'} "${c.caption}"`);
+        if (mode === 'apply') await strapi.db.query(HERO as any).update({ where: { id: r.id }, data: { photoCaption: c.caption } });
         writes++;
       }
     }
@@ -214,6 +273,7 @@ const HELP =
 
 /** Content Manager: label the caption fields and put them next to their photo. */
 export async function configureCaptionFields(strapi: Core.Strapi) {
+  await configureHeroCaptionField(strapi);
   const store = strapi.store({ type: 'core', name: 'inspire-africa' });
   if (await store.get({ key: 'image-captions-layout' })) return;
   const cm = strapi.plugin('content-manager');
@@ -229,8 +289,8 @@ export async function configureCaptionFields(strapi: Core.Strapi) {
     await comp(CARD, (conf) => placeField(conf, 'photoCaption', 'photoCredit', 'Photo caption', HELP));
     await comp('cards.testimonial', (conf) => placeField(conf, 'photoCaption', 'photo', 'Photo caption', HELP));
     await comp(HERO, (conf) => {
-      const a = placeField(conf, 'photoCaptionTitle', 'photoAlt', 'Caption — title', 'Bold first part of the caption bar under the hero photo, e.g. "Ready Now". Needed to publish (or line 2).', false);
-      const b = placeField(conf, 'photoCaptionSub', 'photoCaptionTitle', 'Caption — line 2', 'Smaller second part of the caption bar, e.g. "3-tier readiness pipeline".', false);
+      const a = placeField(conf, 'photoCaptionTitle', 'photoAlt', 'Yellow bar — title', 'Optional tagline on the yellow bar under the photo, e.g. "Ready Now". Not the caption.', false);
+      const b = placeField(conf, 'photoCaptionSub', 'photoCaptionTitle', 'Yellow bar — line 2', 'Optional second part of the yellow bar, e.g. "3-tier readiness pipeline".', false);
       return a || b;
     });
     const blog = types.findContentType(BLOG);
@@ -242,5 +302,37 @@ export async function configureCaptionFields(strapi: Core.Strapi) {
     strapi.log.info('[image-captions] caption fields labelled and placed next to their photos');
   } catch (e) {
     strapi.log.warn(`[image-captions] could not configure editor views: ${(e as Error).message}`);
+  }
+}
+
+/**
+ * v2 (2026-11-24): the hero got its own "Photo caption"; the yellow bar fields
+ * become an optional tagline. Runs once (store key below).
+ */
+async function configureHeroCaptionField(strapi: Core.Strapi) {
+  const store = strapi.store({ type: 'core', name: 'inspire-africa' });
+  if (await store.get({ key: 'image-captions-layout-hero' })) return;
+  try {
+    const components: any = strapi.plugin('content-manager').service('components');
+    const c = components.findComponent(HERO);
+    if (!c) return;
+    const conf = await components.findConfiguration(c);
+    placeField(conf, 'photoCaption', 'photoCredit', 'Photo caption', HELP);
+    const bar: Array<[string, string, string]> = [
+      ['photoCaptionTitle', 'Yellow bar — title', 'Optional tagline on the yellow bar under the photo, e.g. "Ready Now". Not the caption.'],
+      ['photoCaptionSub', 'Yellow bar — line 2', 'Optional second part of the yellow bar, e.g. "3-tier readiness pipeline".'],
+    ];
+    for (const [field, label, description] of bar) {
+      const edit = conf.metadatas?.[field]?.edit;
+      if (edit && (!edit.label || edit.label === field || edit.label.startsWith('Caption —'))) {
+        edit.label = label;
+        edit.description = description;
+      }
+    }
+    await components.updateConfiguration(c, conf);
+    await store.set({ key: 'image-captions-layout-hero', value: { at: new Date().toISOString() } });
+    strapi.log.info('[image-captions] hero "Photo caption" added to the editor; yellow bar relabelled as a tagline');
+  } catch (e) {
+    strapi.log.warn(`[image-captions] could not configure the hero editor view: ${(e as Error).message}`);
   }
 }
