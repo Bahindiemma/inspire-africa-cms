@@ -71,6 +71,35 @@
       "type": "string",
       "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: \u2026\" \u2014 type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
     },
+    "heroImageCaption": {
+      "type": "string",
+      "description": "Caption shown under the cover image on the article.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "showHeroCaption": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the caption under the cover image. Off hides it on the article and in the insights listings.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "showHeroCredit": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the \"Photo By: …\" credit on the cover image, on the article and in the insights listings.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
     "heroAlt": {
       "type": "string",
       "required": true,

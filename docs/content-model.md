@@ -320,7 +320,7 @@ Components live in `src/components/<group>/<name>.json`. Groups:
 
 **`sections/`** (used in Page Dynamic Zone) — `hero` (watermark, eyebrow,
 headingHtml, lede, `ctas` [shared.cta ≤3], `photo` media + `photoUrl` string
-override + `photoAlt`, captions, `centered`, `priority`); `audiences` (eyebrow,
+override + `photoAlt`, captions, `showCaption`, `showCredit`, `centered`, `priority`); `audiences` (eyebrow,
 headingHtml, lede, `cards` [cards.audience-card]); `corridors-marquee` (`label`,
 `corridors` relation oneToMany→corridor); `numbers` (`stats` [cards.stat]);
 `testimonials` (`items` [cards.testimonial]); `feature-list` (`tone`,
@@ -333,12 +333,12 @@ lede, `limit`, `filterTag` oneToOne→tag, ctaLabel/ctaHref); `form-block`
 **`blocks/`** (used in blog-post / legal-document body) — `lede` (text);
 `heading` (text, `level` h2/h3/h4, anchorId); `paragraph` (`text` blocks);
 `list` (`ordered`, `items` json string array); `callout` (title, text);
-`quote` (text, attribution); `image` (media, alt, caption, fullBleed);
+`quote` (text, attribution); `image` (media, alt, caption, showCaption, credit, showCredit, fullBleed);
 `video` (url, title, poster, autoplay); `table` (caption, `headers` json,
 `rows` json 2D); `toc-anchor` (label, anchorId).
 
 **`cards/`** — `audience-card` (number, title, body, `photo` media, photoAlt,
-tag, ctaLabel, ctaHref, isPrimary); `feature-item` (marker, title, body, isBad);
+photoCaption, showCaption, photoCredit, showCredit, tag, ctaLabel, ctaHref, isPrimary); `feature-item` (marker, title, body, isBad);
 `process-step` (title, body); `step-card` (marker, title, body);
 `stat` (value, label, order); `testimonial` (quote, name, role, `flag` enum,
 `photo` media, photoAlt).

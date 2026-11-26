@@ -48,10 +48,22 @@
       "type": "string"
     },
     "photoCaptionTitle": {
-      "type": "string"
+      "type": "string",
+      "description": "Title of the caption bar under the hero photo."
     },
     "photoCaptionSub": {
-      "type": "string"
+      "type": "string",
+      "description": "Line under the title in the hero photo caption bar."
+    },
+    "showCaption": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the caption bar under the hero photo. Off hides the bar and keeps the text in the CMS."
+    },
+    "showCredit": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the \"Photo By: …\" credit on the hero photo."
     },
     "centered": {
       "type": "boolean",

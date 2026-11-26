@@ -10,7 +10,24 @@
       "required": true
     },
     "alt": { "type": "string", "required": true },
-    "caption": { "type": "string" },
-    "fullBleed": { "type": "boolean", "default": false }
+    "caption": {
+      "type": "string",
+      "description": "Caption shown under the image."
+    },
+    "showCaption": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the caption on this photo. Off hides the caption and keeps the text in the CMS."
+    },
+    "credit": {
+      "type": "string",
+      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". Type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
+    },
+    "showCredit": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the \"Photo By: …\" credit on this photo."
+    },
+    "fullBleed": { "type": "boolean", "default": false, "description": "Stretch the image to the full width of the screen." }
   }
 }

@@ -36,6 +36,20 @@
     "photoAlt": {
       "type": "string"
     },
+    "photoCaption": {
+      "type": "string",
+      "description": "Caption shown under the photo."
+    },
+    "showCaption": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the caption on this card's photo. Off hides the caption and keeps the text in the CMS."
+    },
+    "showCredit": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the \"Photo By: …\" credit on this card's photo."
+    },
     "tag": {
       "type": "string",
       "description": "Top-left badge text, e.g. 'For Workers'."
