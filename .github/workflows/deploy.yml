@@ -1,0 +1,123 @@
+name: CMS CI/CD
+
+# Deploys the CMS to the COTE server every time CI passes on a push to main. It builds the image
+# from the commit CI tested, pushes it to GHCR, copies deploy/docker-compose.yml to the server and
+# recreates the cms container. The server's .env stays on the server.
+#
+# Docs-only pushes (docs/, *.md, render.yaml) do not redeploy. Run it by hand from "Run workflow" on main.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  # ============================================
+  # BUILD AND PUSH
+  # ============================================
+  build:
+    # A workflow_run fires for every finished CI run: only a passed push to main deploys.
+    if: >-
+      github.repository_owner == 'cotetech-client-projects' && (
+        github.event_name == 'workflow_dispatch' || (
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch == 'main'
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.name.outputs.image }}
+      sha: ${{ steps.name.outputs.sha }}
+      skip: ${{ steps.skip.outputs.skip }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Skip docs-only commits
+        id: skip
+        if: github.event_name == 'workflow_run'
+        run: |
+          changed=$(git diff --name-only HEAD~1 HEAD | grep -Ev '^docs/|\.md$|^render\.yaml$' || true)
+          if [ -z "$changed" ]; then
+            echo "::notice::Only docs changed. Nothing to deploy."
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Name the image
+        id: name
+        run: |
+          echo "image=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        if: steps.skip.outputs.skip != '1'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: steps.skip.outputs.skip != '1'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        if: steps.skip.outputs.skip != '1'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.name.outputs.image }}:sha-${{ steps.name.outputs.sha }}
+            ${{ steps.name.outputs.image }}:latest
+          labels: |
+            org.opencontainers.image.revision=${{ steps.name.outputs.sha }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================
+  # DEPLOY TO PRODUCTION
+  # ============================================
+  deploy:
+    needs: build
+    if: needs.build.outputs.skip != '1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: deploy-cms-production
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Deploy to production
+        uses: ./.github/actions/deploy
+        with:
+          ssh_key: ${{ secrets.SSH_KEY }}
+          vps_host: ${{ vars.VPS_HOST }}
+          vps_user: ${{ vars.VPS_USER }}
+          vps_port: ${{ vars.VPS_PORT || '2021' }}
+          project_dir: ${{ vars.PROJECT_DIR || '/opt/inspire-africa' }}
+          image_tag: ${{ needs.build.outputs.image }}:sha-${{ needs.build.outputs.sha }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}

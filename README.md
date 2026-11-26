@@ -125,8 +125,8 @@ Highlights:
 
 ## Deploying
 
-Production runs as a Docker image (`ghcr.io/bahindiemma/inspire-africa-cms`) in
-a `docker compose` stack (`db` MySQL + `cms` Strapi + `web` Next.js) on a
-Contabo VPS behind host nginx (TLS). The GHCR package is private, so the server
-builds the image on-host when it can't pull. Full runbook:
-[`docs/deployment.md`](./docs/deployment.md).
+Pushing to `main` deploys the CMS once CI passes. `.github/workflows/deploy.yml` builds
+`ghcr.io/cotetech-client-projects/inspire-africa-cms`, copies `deploy/docker-compose.yml` to the
+server, and recreates the `cms` container. Production is a `docker compose` stack (`db` MySQL +
+`cms` Strapi) on a Contabo VPS behind host nginx (TLS). The website runs beside it in its own
+stack. Full runbook: [`docs/deployment.md`](./docs/deployment.md).
