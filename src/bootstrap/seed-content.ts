@@ -14,8 +14,10 @@
  * `.tmp/data.db` (dev) or truncate the relevant tables (prod).
  */
 import type { Core } from '@strapi/strapi';
+import { BLOG_BODIES } from './blog-bodies';
 import { LEGAL_BODIES } from './legal-bodies';
 import { seedAllMedia, attachSectionPhotos } from './seed-media';
+import { SEED_CAPTIONS } from './image-captions';
 
 // Blog slug → bundled hero image (photoUrl form). Keeps blog hero images
 // in the Media Library too, matching the frontend's per-slug fallback.
@@ -135,7 +137,6 @@ export async function seedContent(strapi: Core.Strapi) {
         { platform: 'youtube', label: 'YouTube', url: 'https://www.youtube.com/@InspireGroupTV', handle: 'InspireGroupTV', iconKey: 'youtube', order: 6 },
         { platform: 'whatsapp', label: 'WhatsApp Business', url: 'https://wa.me/256750329751', handle: '+256 750 329 751', iconKey: 'whatsapp', order: 7 },
       ],
-      communityBaseUrl: 'https://inspire-africa.mn.co/spaces/20105635',
       ...(logoId ? { logo: logoId } : {}),
       ...(faviconId ? { favicon: faviconId } : {}),
       ...(ogImageId ? { defaultOgImage: ogImageId } : {}),
@@ -247,10 +248,10 @@ export async function seedContent(strapi: Core.Strapi) {
   strapi.log.info(`[seed-content] ${tagNames.length} tags upserted`);
 
   // ---------- 7. Blog Posts (3) ----------
-  // Bodies are abbreviated here to keep the seed file manageable; the
-  // full text from lib/blogs.ts can be pasted in once the editor is
-  // comfortable with the Block editor UX. The seed produces fully
-  // valid, publishable documents either way.
+  // Full article bodies come from blog-bodies.ts (verbatim from the
+  // website's lib/blogs.ts). Until 2026-11-23 this seeded abbreviated
+  // bodies, and the live site showed them; recover-blog-bodies.ts fixed
+  // the existing database.
   const posts = [
     {
       slug: 'the-real-cost-of-free-migration',
@@ -260,12 +261,7 @@ export async function seedContent(strapi: Core.Strapi) {
       category: 'Ethical Recruitment',
       heroAlt: 'Nigerian construction workers erecting rebar columns — the source-side reality of the labour pipelines feeding Gulf-corridor recruitment',
       tags: ['Worker protection', 'Recruitment fees', 'Gulf corridor', 'Policy'],
-      body: [
-        { __component: 'blocks.lede', text: 'The official position across most destination markets is unambiguous: workers should not pay to be recruited. The lived reality in 2026 is something else.' },
-        { __component: 'blocks.heading', text: 'The gap between policy and practice', level: 'h2' },
-        { __component: 'blocks.paragraph', text: [{ type: 'paragraph', children: [{ type: 'text', text: 'Eighteen destination countries have now adopted some version of the "employer pays" principle in their published recruitment guidance.' }] }] },
-        { __component: 'blocks.callout', title: 'What the 2025 ILO corridor study found', text: 'Median fee burden along West Africa → Gulf hospitality corridors: $2,800–$4,200 per worker. Less than 11% of workers surveyed reported receiving an itemised invoice.' },
-      ],
+      body: BLOG_BODIES['the-real-cost-of-free-migration'],
     },
     {
       slug: 'uk-care-visa-2026-what-african-workers-need-to-know',
@@ -275,15 +271,7 @@ export async function seedContent(strapi: Core.Strapi) {
       category: 'Policy & Markets',
       heroAlt: 'UK Home Office · UK Visas & Immigration signage (photo: PA)',
       tags: ['United Kingdom', 'Healthcare', 'Visa policy', 'NHS'],
-      body: [
-        { __component: 'blocks.lede', text: 'The UK\'s adult social-care vacancy rate sits above 8.3% as we go to publication.' },
-        { __component: 'blocks.heading', text: 'What the 2026 changes actually do', level: 'h2' },
-        { __component: 'blocks.list', ordered: false, items: [
-          'Raised the minimum hourly threshold for sponsorship in adult social care.',
-          'Tightened sponsor licence conditions: care providers now face stricter scrutiny.',
-          'Introduced a new requirement for sponsors to evidence local-recruitment efforts.',
-        ] },
-      ],
+      body: BLOG_BODIES['uk-care-visa-2026-what-african-workers-need-to-know'],
     },
     {
       slug: 'from-remittance-to-reinvestment-earn-learn-return',
@@ -293,15 +281,7 @@ export async function seedContent(strapi: Core.Strapi) {
       category: 'Development Economics',
       heroAlt: 'ILO report cover — Minimum wages in Africa: wage disparities and the redistributive potential of minimum wages (ILO, 2025)',
       tags: ['Remittances', 'Circular migration', 'Economic development'],
-      body: [
-        { __component: 'blocks.lede', text: 'Remittances to Sub-Saharan Africa crossed $100 billion in 2025 — larger than total FDI and three times official development assistance.' },
-        { __component: 'blocks.heading', text: 'What Earn-Learn-Return actually means', level: 'h2' },
-        { __component: 'blocks.list', ordered: true, items: [
-          'Earn — the worker accesses a higher-wage market through a fair pathway.',
-          'Learn — the placement is treated as a skills-development stage.',
-          'Return — the return is anticipated, supported and connected to a reintegration pathway.',
-        ] },
-      ],
+      body: BLOG_BODIES['from-remittance-to-reinvestment-earn-learn-return'],
     },
   ];
 
@@ -311,12 +291,16 @@ export async function seedContent(strapi: Core.Strapi) {
       p.tags.map(async (name) => await strapi.documents('api::tag.tag').findFirst({ filters: { slug: tagSlugs[name] } as any }))
     );
     const heroId = mediaByUrl.get(BLOG_HERO_BY_SLUG[p.slug]);
+    // Category is a relation now; migrateBlogCategories() runs first and
+    // creates the starter categories these names refer to.
+    const categoryDoc = await strapi.documents('api::category.category').findFirst({ filters: { name: p.category } as any });
     const data: any = {
       title: p.title,
       slug: p.slug,
       excerpt: p.excerpt,
-      category: p.category,
+      category: categoryDoc?.documentId,
       heroAlt: p.heroAlt,
+      heroImageCaption: SEED_CAPTIONS[p.slug],
       readMinutes: 7,
       body: p.body,
       tags: tagDocs.filter(Boolean).map((t: any) => t.documentId),
@@ -406,6 +390,7 @@ export async function seedContent(strapi: Core.Strapi) {
       lede: 'INSPIRE AFRICA connects skilled African workers, employers and governments through governed migration pathways, predictive screening and migration finance.',
       photoUrl: '/images/home-hero-healthcare.jpg',
       photoAlt: 'African doctor walking a patient through their diagnosis in a hospital corridor',
+      photoCaption: SEED_CAPTIONS['hero:home'],
       photoCaptionTitle: 'Ready Now',
       photoCaptionSub: '3-tier readiness pipeline',
       ctas: [
@@ -424,9 +409,9 @@ export async function seedContent(strapi: Core.Strapi) {
       headingHtml: 'Three audiences.<br/><span class="yellow">One platform.</span>',
       lede: 'Workers are our primary audience. Employers and governments engage through trusted pathways.',
       cards: [
-        { number: '01', title: 'Access global work', body: 'Fair, structured pathways with preparation, support and salary-linked finance — so you can work abroad and bring the gains home.', tag: 'For Workers', ctaLabel: 'Start Your Journey', ctaHref: '/workers', isPrimary: true, photoUrl: '/images/home-card-workers-construction.jpg', photoAlt: 'African construction worker focused on hammering nails into a wooden frame' },
-        { number: '02', title: 'Hire with confidence', body: 'Pre-qualified African talent. Ethical recruitment with faster mobilisation.', tag: 'For Employers', ctaLabel: 'Talk to Us', ctaHref: '/employers', isPrimary: false, photoUrl: '/images/home-card-employers-hospitality.jpg', photoAlt: 'Three Ugandan chefs cooking over an open flame in a busy hospitality kitchen' },
-        { number: '03', title: 'Build mobility systems', body: 'Structured, ethical labour pathways aligned with national strategy and long-term capability.', tag: 'For Governments', ctaLabel: 'Explore a Partnership', ctaHref: '/governments', isPrimary: false, photoUrl: '/images/home-card-governments-agriculture.jpg', photoAlt: 'Wide view of Nigerian farmers working together across a rice field — workforce at scale' },
+        { number: '01', title: 'Access global work', photoCaption: SEED_CAPTIONS['Access global work'], body: 'Fair, structured pathways with preparation, support and salary-linked finance — so you can work abroad and bring the gains home.', tag: 'For Workers', ctaLabel: 'Start Your Journey', ctaHref: '/workers', isPrimary: true, photoUrl: '/images/home-card-workers-construction.jpg', photoAlt: 'African construction worker focused on hammering nails into a wooden frame' },
+        { number: '02', title: 'Hire with confidence', photoCaption: SEED_CAPTIONS['Hire with confidence'], body: 'Pre-qualified African talent. Ethical recruitment with faster mobilisation.', tag: 'For Employers', ctaLabel: 'Talk to Us', ctaHref: '/employers', isPrimary: false, photoUrl: '/images/home-card-employers-hospitality.jpg', photoAlt: 'Three Ugandan chefs cooking over an open flame in a busy hospitality kitchen' },
+        { number: '03', title: 'Build mobility systems', photoCaption: SEED_CAPTIONS['Build mobility systems'], body: 'Structured, ethical labour pathways aligned with national strategy and long-term capability.', tag: 'For Governments', ctaLabel: 'Explore a Partnership', ctaHref: '/governments', isPrimary: false, photoUrl: '/images/home-card-governments-agriculture.jpg', photoAlt: 'Wide view of Nigerian farmers working together across a rice field — workforce at scale' },
       ],
     },
     {
@@ -585,6 +570,7 @@ const WORKERS_PAGE = {
       lede: 'Access real international job opportunities with fair recruitment, structured preparation and no large up-front costs.',
       photoUrl: '/images/workers-hero-nurse.jpg',
       photoAlt: "African nurse measuring a patient's blood pressure during a clinical assessment",
+      photoCaption: SEED_CAPTIONS['hero:workers'],
       photoCaptionTitle: 'Fair · Transparent',
       photoCaptionSub: 'Protected at every step',
       ctas: [
@@ -653,6 +639,7 @@ const EMPLOYERS_PAGE = {
       lede: 'Access a reliable pipeline of pre-screened, job-ready African talent through a single, compliant platform.',
       photoUrl: '/images/employers-hero-kitchen.jpg',
       photoAlt: 'Brigade of African chefs working through service in a busy professional kitchen',
+      photoCaption: SEED_CAPTIONS['hero:employers'],
       photoCaptionTitle: 'Ready Now',
       photoCaptionSub: 'Pre-screened, prepared, deployable',
       ctas: [
@@ -736,6 +723,7 @@ const GOVERNMENTS_PAGE = {
       lede: 'INSPIRE AFRICA provides the tools and infrastructure to build transparent, scalable and circular labour mobility pathways.',
       photoUrl: '/images/governments-hero-market.jpg',
       photoAlt: 'Busy Senegalese market scene — traders and buyers moving goods through a working commercial corridor',
+      photoCaption: SEED_CAPTIONS['hero:governments'],
       photoCaptionTitle: 'Systems-led',
       photoCaptionSub: 'From migration to mobility infrastructure',
       ctas: [
@@ -808,6 +796,7 @@ const APPROACH_PAGE = {
       lede: 'A structured system for global labour mobility — built around four principles: ethical, circular, structured, worker-centred.',
       photoUrl: '/images/approach-hero-tailor.jpg',
       photoAlt: 'African tailor focused on a stitching task — skilled, hands-on work being built into a career',
+      photoCaption: SEED_CAPTIONS['hero:approach'],
       photoCaptionTitle: 'Earn · Learn · Return',
       photoCaptionSub: 'The circular model',
       ctas: [
@@ -868,6 +857,7 @@ const JOIN_PAGE = {
       lede: 'Free membership. Your direct route into the INSPIRE AFRICA ecosystem. Connect with employers, opportunities and fellow professionals already on the journey.',
       photoUrl: '/images/join-hero-construction-team.jpg',
       photoAlt: 'African construction crew in safety gear working together on a building site',
+      photoCaption: SEED_CAPTIONS['hero:join'],
       photoCaptionTitle: 'Free Forever',
       photoCaptionSub: 'No paywalls. No hidden fees.',
       ctas: [
@@ -880,7 +870,7 @@ const JOIN_PAGE = {
       tone: 'yellow',
       eyebrow: 'What you get inside',
       headingHtml: 'Everything you need <span class="italic-accent">in one place.</span>',
-      lede: 'The Inspire community on Mighty Networks is your free entry point — a structured, peer-rich space designed to help you move from preparation to placement.',
+      lede: 'INSPIRE AFRICA Readiness is your free entry point — a structured space designed to help you move from preparation to placement.',
       items: [
         { marker: '✓', title: 'A vibrant international network', body: 'Connect with African professionals, recruiters and employers already on the path abroad.' },
         { marker: '✓', title: 'Live opportunities', body: 'Real jobs from verified employers — not aggregated scraping from the wider web.' },

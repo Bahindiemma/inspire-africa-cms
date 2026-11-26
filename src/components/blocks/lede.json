@@ -1,8 +1,19 @@
 {
   "collectionName": "components_blocks_ledes",
-  "info": { "displayName": "Lede", "icon": "align-left" },
+  "info": {
+    "displayName": "Lede",
+    "icon": "align-left"
+  },
   "options": {},
   "attributes": {
-    "text": { "type": "text", "required": true }
+    "content": {
+      "type": "blocks",
+      "description": "Opening paragraph, shown larger. Rich text: bold, italic, links and so on show on the website exactly as formatted here."
+    },
+    "text": {
+      "type": "text",
+      "required": false,
+      "description": "Old plain-text version, kept automatically in step with 'content'. Hidden in the editor; do not edit."
+    }
   }
 }

@@ -1,0 +1,17 @@
+{
+  "kind": "collectionType",
+  "collectionName": "testimonial_labels",
+  "info": {
+    "singularName": "testimonial-label",
+    "pluralName": "testimonial-labels",
+    "displayName": "Testimonial Label",
+    "description": "The label on a testimonial card (Worker voice, Employer voice, …). Add one here or with \"Create a relation\" in a testimonial's label field."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": { "type": "string", "required": true, "unique": true, "maxLength": 60 },
+    "order": { "type": "integer", "default": 0, "description": "Lower numbers come first in the Testimonial Label list." }
+  }
+}

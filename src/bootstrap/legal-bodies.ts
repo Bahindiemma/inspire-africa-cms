@@ -78,8 +78,8 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
         'Job descriptions, role requirements and placement records',
         'Compliance documentation related to ethical-recruitment standards',
       ] },
-      { __component: 'blocks.heading', level: 'h3', text: 'When you join the community' },
-      p([t('Our community is hosted on Mighty Networks. Before we hand you over, we ask for your details on our own signup page so that we — not only our community provider — can support you.')]),
+      { __component: 'blocks.heading', level: 'h3', text: 'When you join' },
+      p([t('When you join, we ask for your details on our own signup page.')]),
       { __component: 'blocks.list', ordered: false, items: [
         'Which of our audiences you belong to — worker, employer or recruiter, government or public sector, education or training provider, development partner or NGO, diaspora contributor, or something else',
         'Your first name, last name and email address',
@@ -87,8 +87,9 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
         'A one-way, irreversible hash of your IP address and your browser&rsquo;s user-agent string, used to block automated abuse — we do not store the IP address itself',
       ] },
       p([t('That is all we ask for at signup. We do not ask for your phone number, your address, your date of birth, identity documents, qualifications, or any health or police information.')]),
-      p([t('We send a confirmation link to your email address, and you must open it before you reach the community. This protects you and everyone else in it: it keeps out automated signups and makes sure nobody can register using an address that is not theirs.')]),
-      p([t('We also record the fact that a “Join the Community” button was clicked, before any details are entered. That record contains no name or email — only the page it came from and the anonymised values above. Once you arrive at Mighty Networks they will ask you to create an account with them, governed by their own privacy policy.')]),
+      p([t('If you tell us you are a worker, we email you a link to continue to INSPIRE AFRICA Readiness, our preparation portal. Opening it proves the address is yours. Only if you open it, choose a password and give your permission do we create your Readiness profile — using the name and email you gave us here, so you do not have to type them again. If you never open the link, no Readiness profile is created. Your Readiness profile is then covered by the privacy notice in the Readiness portal.')]),
+      p([t('If you tell us you belong to another audience, we keep your details so our team can be in touch. We do not create a Readiness profile for you.')]),
+      p([t('We also record the fact that a “Join” button was clicked, before any details are entered. That record contains no name or email — only the page it came from and the anonymised values above.')]),
 
       { __component: 'blocks.heading', level: 'h3', text: 'Automatically' },
       { __component: 'blocks.list', ordered: false, items: [
@@ -113,7 +114,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
       { __component: 'blocks.table', headers: ['Basis', 'When we rely on it'], rows: [
         ['<strong>Contract</strong>', 'To deliver services you have engaged us to provide — readiness, matching, deployment, finance.'],
         ['<strong>Legal obligation</strong>', 'Where required by immigration, employment, tax, anti-trafficking or financial-services law.'],
-        ['<strong>Legitimate interests</strong>', 'For platform improvement, fraud prevention and operational continuity, balanced against your rights. This includes holding the details you give us when joining the community, and measuring how many people click through to it, so we can support members directly rather than depending solely on a third-party platform.'],
+        ['<strong>Legitimate interests</strong>', 'For platform improvement, fraud prevention and operational continuity, balanced against your rights. This includes holding the details you give us when joining, and measuring how many people click through to join, so we can support you and invite workers into INSPIRE AFRICA Readiness.'],
         ['<strong>Consent</strong>', 'For optional marketing, sensitive categories of data and non-essential cookies. You may withdraw consent at any time.'],
       ] },
 
@@ -121,7 +122,6 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
       p([t('We share personal data only with parties necessary to deliver our services — and only under contractual safeguards consistent with this policy.')]),
       { __component: 'blocks.list', ordered: false, items: [
         'Employers and prospective employers — where you have applied or been matched',
-        'Mighty Networks, Inc. — our community platform. When you continue from our signup page to the community, you create an account with them directly and their privacy policy applies to it',
         'Government, regulatory and immigration authorities — where legally required',
         'Service providers (cloud hosting, identity verification, payment, communications) bound by data-processing agreements',
         'Professional advisers — legal, audit, compliance',
@@ -138,8 +138,8 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
         'Active candidate and placement records — for the duration of the relationship and up to seven years thereafter',
         'Financial records — six to ten years, depending on jurisdiction',
         'Marketing data — until you withdraw consent',
-        'Community signup details (name and email) — three years from your last interaction with us, unless you ask us to erase them sooner',
-        'Community click records, which contain no name, email or phone number — fourteen months',
+        'Signup details (name and email) — three years from your last interaction with us, unless you ask us to erase them sooner',
+        'Signup click records, which contain no name, email or phone number — fourteen months',
         'Cookies — as set out in our <a href="/cookies">Cookie Policy</a>',
       ] },
 
@@ -213,7 +213,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
 
       { __component: 'blocks.heading', level: 'h2', anchorId: 'definitions', text: 'Definitions' },
       { __component: 'blocks.list', ordered: false, items: [
-        '<strong>"Platform"</strong> means the INSPIRE AFRICA website, community, applications and any related services we provide.',
+        '<strong>"Platform"</strong> means the INSPIRE AFRICA website, INSPIRE AFRICA Readiness, applications and any related services we provide.',
         '<strong>"Worker"</strong> means an individual seeking or holding international employment through the platform.',
         '<strong>"Employer"</strong> means an organisation engaging the platform to hire workers.',
         '<strong>"Government Partner"</strong> means a public-sector body engaging the platform on migration pathways.',
@@ -224,14 +224,14 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
       p([t('You must be at least 18 years old and legally able to enter a contract in your country of residence. If you are using the platform on behalf of an organisation, you confirm that you have the authority to bind that organisation to these terms.')]),
 
       { __component: 'blocks.heading', level: 'h2', anchorId: 'account', text: 'Your account' },
-      p([t('Some parts of the platform — including the community — require registration. You agree to:')]),
+      p([t('Some parts of the platform — including INSPIRE AFRICA Readiness — require registration. You agree to:')]),
       { __component: 'blocks.list', ordered: false, items: [
         'Provide accurate, current and complete information when you register',
         'Keep your credentials secure and not share them with others',
         'Notify us promptly of any unauthorised access',
         'Be responsible for activity carried out under your account',
       ] },
-      p([t('Joining the community involves two separate steps. First you give your details to INSPIRE AFRICA on our own signup page; we hold those under our <a href="/privacy">Privacy Policy</a>. You are then taken to Mighty Networks, where you create a community account governed by their terms. We do not control that account, and cannot log in to, moderate or recover it on your behalf beyond what their platform allows us as the community host.')]),
+      p([t('Joining involves up to two steps. First you give your details to INSPIRE AFRICA on our own signup page; we hold those under our <a href="/privacy">Privacy Policy</a>. If you are a worker, we then email you a link to continue to INSPIRE AFRICA Readiness, where you choose a password and create an account governed by these terms.')]),
 
       { __component: 'blocks.heading', level: 'h2', anchorId: 'acceptable-use', text: 'Acceptable use' },
       p([t('When using the platform you must not:')]),
@@ -347,9 +347,7 @@ export const LEGAL_BODIES: Record<string, LegalBodyDoc> = {
       { __component: 'blocks.list', ordered: false, items: [
         '<strong>Google LLC</strong> — analytics',
         '<strong>LinkedIn Ireland Unlimited Company</strong> — campaign measurement',
-        '<strong>Mighty Networks</strong> — our community platform, which sets its own cookies when you visit the community',
-        '<strong>INSPIRE AFRICA signup page</strong> — no cookie. When you click &ldquo;Join the Community&rdquo; we record that click on our own server, not in your browser. That record holds the page you came from and a one-way hash of your IP address; it holds no name, email or phone number unless you go on to complete the form. Because nothing is stored on your device and the record is necessary to operate the signup itself, it does not require cookie consent — see our <a href="/privacy">Privacy Policy</a> for the lawful basis and retention period.',
-        '<strong>Wix.com Ltd</strong> — site infrastructure and form handling',
+        '<strong>INSPIRE AFRICA signup page</strong> — no cookie. When you click &ldquo;Join&rdquo; we record that click on our own server, not in your browser. That record holds the page you came from and a one-way hash of your IP address; it holds no name, email or phone number unless you go on to complete the form. Because nothing is stored on your device and the record is necessary to operate the signup itself, it does not require cookie consent — see our <a href="/privacy">Privacy Policy</a> for the lawful basis and retention period.',
       ] },
       p([t('These providers process limited data on our behalf or as joint controllers. Their own privacy and cookie policies apply when you interact with them directly.')]),
 

@@ -5,7 +5,7 @@
     "singularName": "blog-post",
     "pluralName": "blog-posts",
     "displayName": "Blog Post",
-    "description": "Editorial article \u2014 surfaced on the home Insights section and on /blog/[slug]."
+    "description": "Editorial article — surfaced on the home Insights section and on /blog/[slug]."
   },
   "options": {
     "draftAndPublish": true
@@ -47,17 +47,10 @@
       }
     },
     "category": {
-      "type": "enumeration",
-      "enum": [
-        "Ethical Recruitment",
-        "Policy & Markets",
-        "Development Economics",
-        "Worker Stories",
-        "Employer Stories",
-        "Government Partnerships",
-        "Platform Updates"
-      ],
-      "required": true
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category",
+      "inversedBy": "blog_posts"
     },
     "heroImage": {
       "type": "media",
@@ -69,7 +62,17 @@
     },
     "heroImageCredit": {
       "type": "string",
-      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: \u2026\" \u2014 type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
+      "description": "Photographer credit for this image, e.g. \"Qwerqu Mcbrew / Unsplash\". The site renders it over the bottom of the photo as \"Photo By: …\" — type only the name, not the \"Photo By:\" prefix. Leave blank to fall back to the image's Caption in the Media Library, then to a photographer encoded in the filename."
+    },
+    "heroImageCaption": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "One short line under the photo saying what or who it shows, or why it is here (about 140 characters at most). Not the photographer credit: that goes in the credit field and shows as “Photo By:”. Don't repeat the headline. Required to publish when a photo is set.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
     },
     "heroImageCaption": {
       "type": "string",
@@ -114,6 +117,30 @@
       "min": 1,
       "max": 60,
       "description": "Auto-computed by the lifecycle on save from body word count."
+    },
+    "dateDisplay": {
+      "type": "enumeration",
+      "enum": [
+        "useSiteSetting",
+        "alwaysShow",
+        "alwaysHide"
+      ],
+      "default": "useSiteSetting",
+      "description": "Whether this post's date shows on the website. 'useSiteSetting' follows the Show Blog Dates switch in Site Setting.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "displayDate": {
+      "type": "date",
+      "description": "The date shown on the website when dates are on. Filled in automatically the first time the post is published; change it to show a different date. Re-publishing does not change it.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
     },
     "author": {
       "type": "relation",

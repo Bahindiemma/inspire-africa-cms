@@ -21,6 +21,10 @@ const REVALIDATABLE_COLLECTIONS = new Set([
   'api::design-token.design-token',
   'api::navigation.navigation',
   'api::form-definition.form-definition',
+  // A renamed category changes every post card that shows it.
+  'api::category.category',
+  // A renamed testimonial label changes every card that shows it.
+  'api::testimonial-label.testimonial-label',
   // Media. Replacing a photo in the Media Library changes no entry at all, so
   // without this the site kept serving the old picture until someone manually
   // revalidated — the "I changed the image and nothing happened" complaint.
