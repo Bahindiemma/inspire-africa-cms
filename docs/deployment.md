@@ -82,7 +82,9 @@ flowchart LR
   from `main`. A failing CI run never deploys.
 - Builds + pushes `ghcr.io/cotetech-client-projects/inspire-africa-cms` with tags
   `sha-<short>` and `latest`, using the GHA build cache.
-- A commit that only changes `docs/`, `*.md` or `render.yaml` is built and skipped. It does not deploy.
+- Every passing CI run on `main` deploys, including docs-only commits. Each deploy is a full pass, so
+  the job does not try to guess which commits changed the running code. A merge commit has no reliable
+  "previous" to compare against.
 
 The image name changed from `ghcr.io/bahindiemma/inspire-africa-cms` (the old personal copy). That
 older package is no longer published.
