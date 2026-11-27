@@ -74,6 +74,12 @@ export default {
         'app.components.Login.welcome': ' ',
         'app.components.Login.subTitle': 'Sign in to the labour-mobility CMS',
 
+        // Media Library details: the Caption field holds each photo's credit
+        // (the website reads it as "Photo By: …"), so label it for what it holds.
+        'upload.form.input.label.file-caption': 'Photo credit',
+        'upload.form.input.placeholder.file-caption': 'e.g. Qwerqu Mcbrew / Unsplash',
+        'upload.asset-details.caption': 'Photo credit',
+
         // Field labels — kept readable
         'Auth.form.button.login': 'Sign in',
         'Auth.form.password.label': 'Password',
