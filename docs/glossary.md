@@ -27,7 +27,7 @@
 | **Rollup** | A pre-aggregated `analytics-daily-rollup` row built nightly so the dashboard avoids scanning raw events. |
 | **ipHash** | Salted, truncated (/24 v4, /48 v6) SHA-256 of the visitor IP — the only IP-derived value stored. Raw IP is never stored. |
 | **botScore** | 0–1 server-side bot likelihood per session (`src/utils/analytics/ua.ts`). |
-| **GHCR** | GitHub Container Registry. The CMS image is `ghcr.io/bahindiemma/inspire-africa-cms` (private). |
+| **GHCR** | GitHub Container Registry. The CMS image is `ghcr.io/cotetech-client-projects/inspire-africa-cms` (private). |
 | **VPS** | The Contabo virtual private server at `/opt/inspire-africa` hosting the compose stack, behind host nginx. |
 | **Keycloak / OIDC** | Optional SSO via OpenID Connect; custom strategy maps realm roles to users-permissions roles. |
 | **CSP / CORS** | Content-Security-Policy and Cross-Origin Resource Sharing, configured in `config/middlewares.ts`. CORS is an allow-list, never `*`. |

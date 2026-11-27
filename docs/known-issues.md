@@ -101,11 +101,10 @@ the in-code clamp as the durable fix. Full detail:
 
 ## Private GHCR package
 
-`ghcr.io/bahindiemma/inspire-africa-cms` is a **private** package. The VPS
-builds the image on-host when it can't pull. If host GHCR auth lapses *and* the
-on-host build isn't run, deploys stall. Options: make the package readable to a
-deploy token, or standardise on on-host builds. See
-[`deployment.md`](./deployment.md#on-server-build-fallback-private-package).
+The image is published to `ghcr.io/cotetech-client-projects/inspire-africa-cms`, which is
+private. The deploy logs in with the workflow token, so no standing server login is needed. The
+old `ghcr.io/bahindiemma/...` copy is no longer published. If the pipeline is down, the on-host
+build fallback is in [`deployment.md`](./deployment.md#on-server-build-fallback-private-package).
 
 ## Local media volume SPOF
 

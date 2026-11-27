@@ -76,39 +76,35 @@ flowchart LR
 
 ## GHCR build workflow
 
-`.github/workflows/docker-publish.yml`:
+`.github/workflows/deploy.yml` builds and pushes the image, then deploys it:
 
-- Trigger: push to `main` **except** `**.md`, `docs/**`, `render.yaml`
-  (`paths-ignore`), plus `workflow_dispatch`.
-- Builds + pushes to `ghcr.io/<repo>` (i.e.
-  `ghcr.io/bahindiemma/inspire-africa-cms`) with tags `latest` and
-  `sha-<short>`, using GHA build cache.
+- Trigger: a **passed** `CI` run on a push to `main` (`workflow_run`), plus `workflow_dispatch`
+  from `main`. A failing CI run never deploys.
+- Builds + pushes `ghcr.io/cotetech-client-projects/inspire-africa-cms` with tags
+  `sha-<short>` and `latest`, using the GHA build cache.
+- A commit that only changes `docs/`, `*.md` or `render.yaml` is built and skipped. It does not deploy.
 
-> **A docs-only push (this set) will NOT trigger an image rebuild** because of
-> `paths-ignore: docs/**` and `**.md`. Intended.
+The image name changed from `ghcr.io/bahindiemma/inspire-africa-cms` (the old personal copy). That
+older package is no longer published.
 
 ## On-server build fallback (private package)
 
-The GHCR package is **private**. If the VPS can't authenticate to pull
-`ghcr.io/bahindiemma/inspire-africa-cms:latest`, build it on-host from a clone
-instead of pulling:
+The deploy logs in to GHCR with the workflow token, so the server needs no
+standing GHCR login. Only if the pipeline is down and the image must be built on the host:
 
 ```bash
 # On the VPS, from a checkout of inspire-africa-cms:
-docker build -t ghcr.io/bahindiemma/inspire-africa-cms:latest .
-# Then bring the stack up using the local image (compose references :latest):
-docker compose -f /opt/inspire-africa/docker-compose.yml up -d cms
+docker build -t ghcr.io/cotetech-client-projects/inspire-africa-cms:latest .
+docker compose -f /opt/inspire-africa/docker-compose.yml up -d --no-deps cms
 ```
 
-Either authenticate the host to GHCR (`docker login ghcr.io` with a PAT that has
-`read:packages`) so `docker compose pull` works, **or** keep building on-host.
 On-host builds need the same `vips`/`build-base` toolchain the Dockerfile
 installs (handled inside the build stages).
 
 ## The compose stack
 
-The compose file lives with the **website** repo (`deploy/docker-compose.yml`)
-and orchestrates all three services. The `cms` service env (from
+The compose file is `deploy/docker-compose.yml` in this repo. A deploy copies it to
+`/opt/inspire-africa`. It runs the `db` and `cms` services. The website's `web` joins the same network. The `cms` service env (from
 `/opt/inspire-africa/.env`) is documented in [`environment.md`](./environment.md).
 Key CMS settings there: `DATABASE_CLIENT=mysql`, `DATABASE_HOST=db`,
 `MEDIA_PROVIDER=local`, `IS_PROXIED=false`,
@@ -132,17 +128,32 @@ secrets, and the Strapi secrets.
 
 ## Deploying an update
 
-```bash
-# If pulling from GHCR (host authenticated):
-docker compose -f /opt/inspire-africa/docker-compose.yml pull cms
-docker compose -f /opt/inspire-africa/docker-compose.yml up -d cms
-# If building on-host (private package, no pull):
-docker build -t ghcr.io/bahindiemma/inspire-africa-cms:latest /path/to/clone
-docker compose -f /opt/inspire-africa/docker-compose.yml up -d --force-recreate cms
-```
+Pushing to `main` deploys the CMS, once CI has passed on that commit. `deploy.yml` builds
+the image, then `.github/actions/deploy` does the following on the server, in `/opt/inspire-africa`:
 
-Schema migrations run automatically on boot. Only the `cms` service needs
-recreating for CMS changes; leave `db` and `web` running.
+1. Logs in to GHCR with the workflow token and pulls `ghcr.io/cotetech-client-projects/inspire-africa-cms:sha-<short>`.
+2. Dumps the database to `backups/cms-db-pre-deploy-<timestamp>.sql` (the last 14 are kept). An empty or failed dump stops the deploy before anything changes.
+3. Copies `deploy/docker-compose.yml` from this repo over `/opt/inspire-africa/docker-compose.yml`. The previous file is kept as `docker-compose.previous.yml`.
+4. Runs `CMS_IMAGE=<sha tag> docker compose up -d --no-deps cms`. Only the CMS container is recreated. `db`, `web` and the other projects on the host are not touched.
+5. Waits for `http://127.0.0.1:1337/_health` to return 204. If it doesn't, the previous image and compose file are restored and the job fails.
+
+The server's `.env` is never touched by a deploy. The GitHub side needs only the secret `SSH_KEY` and
+the variables `VPS_HOST`, `VPS_USER` and optionally `VPS_PORT` (default `2021`), the same ones the
+website repo uses.
+
+**Migrations run on boot.** If the new image migrates the schema and then fails its health check,
+the rollback puts back the old image, but the schema stays changed. Restore the dump from step 2 if
+the old image then misbehaves (see [Database backup & restore](./operations.md#database-backup--restore)).
+
+**Run compose from `/opt/inspire-africa` without `-f`, or use the same `CMS_IMAGE=...` prefix.**
+The `cms` image defaults to `:latest`, which is also pushed on every deploy.
+
+Manual deploy, if the pipeline is unavailable:
+
+```bash
+cd /opt/inspire-africa
+docker compose pull cms && docker compose up -d --no-deps cms
+```
 
 ## RESEED during deploy
 

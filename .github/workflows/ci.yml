@@ -5,7 +5,7 @@
 #   - produces a production build of Strapi and its admin panel
 #     (npm run build = strapi build),
 #   - on pull requests only, builds the Docker image without pushing it
-#     (pushes to main already build it in docker-publish.yml).
+#     (pushes to main build and deploy in deploy.yml, which waits for this run to pass).
 # The repo has no lint script or unit tests; scripts/smoke-test.sh needs a
 # running Strapi with a database, so it is not run here. No deploy happens here.
 name: CI

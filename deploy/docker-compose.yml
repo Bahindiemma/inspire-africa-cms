@@ -1,0 +1,90 @@
+# INSPIRE AFRICA — the CMS stack on the COTE server (/opt/inspire-africa).
+#
+#   cms  : Strapi v5 admin/API -> published on host port 1337
+#   db   : MySQL 8             -> internal only (no host port)
+#
+# This file is the source of truth. .github/workflows/deploy.yml copies it to the server on every
+# deploy of main. Secrets stay in /opt/inspire-africa/.env on the server and are never in GitHub or here.
+# The website's web container joins this stack's `internal` network and answers to the name `web`.
+
+name: inspire-africa
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    command: >-
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USERNAME}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [internal]
+
+  cms:
+    # The deploy sets CMS_IMAGE to the sha tag it just built. A manual `up` falls back to latest.
+    image: ${CMS_IMAGE:-ghcr.io/cotetech-client-projects/inspire-africa-cms:latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 1337
+      PUBLIC_URL: ${CMS_PUBLIC_URL}
+      IS_PROXIED: "false"
+      # --- database ---
+      DATABASE_CLIENT: mysql
+      DATABASE_HOST: db
+      DATABASE_PORT: 3306
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_SSL: "false"
+      # --- secrets ---
+      APP_KEYS: ${APP_KEYS}
+      API_TOKEN_SALT: ${API_TOKEN_SALT}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT}
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      # --- media: store uploads on a local volume (no S3/Cloudinary) ---
+      MEDIA_PROVIDER: local
+      # --- CORS: origins allowed to call the API from a browser ---
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      # --- revalidation webhook back into the Next.js app (internal network) ---
+      # One-shot seeders. Leave false; set to true for a single recreate,
+      # then recreate again without it. RESEED_CREDITS only fills BLANK
+      # media captions with a photographer derived from the filename —
+      # it never touches page content.
+      RESEED_CREDITS: ${RESEED_CREDITS:-false}
+      FRONTEND_REVALIDATE_URL: http://web:3000/api/revalidate
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET}
+      # --- visitor analytics (consent-gated, first-party) ---
+      ANALYTICS_INGEST_TOKEN: ${ANALYTICS_INGEST_TOKEN}
+      ANALYTICS_IP_SALT: ${ANALYTICS_IP_SALT}
+      ANALYTICS_RETENTION_MONTHS: ${ANALYTICS_RETENTION_MONTHS:-14}
+    volumes:
+      - cms_uploads:/app/public/uploads
+    ports:
+      - "1337:1337"
+    networks: [internal]
+
+
+volumes:
+  db_data:
+  cms_uploads:
+
+networks:
+  internal:
+    driver: bridge

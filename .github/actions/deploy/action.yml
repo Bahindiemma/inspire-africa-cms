@@ -1,0 +1,184 @@
+name: 'Deploy Inspire Africa CMS'
+description: 'Copy deploy/docker-compose.yml to the COTE server and recreate the cms container'
+
+inputs:
+  ssh_key:
+    description: 'SSH private key'
+    required: true
+  vps_host:
+    description: 'VPS hostname/IP'
+    required: true
+  vps_user:
+    description: 'VPS SSH user'
+    required: true
+  vps_port:
+    description: 'VPS SSH port'
+    default: '2021'
+  project_dir:
+    description: 'Stack directory on the server (holds .env, backups/ and the compose file)'
+    default: '/opt/inspire-africa'
+  image_tag:
+    description: 'CMS image to run, pushed by this pipeline'
+    required: true
+  github_token:
+    description: 'GitHub token for GHCR access'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    # Nothing has touched the server yet. The CMS secrets are not GitHub's to hold: .env stays on the server.
+    - name: Check configuration
+      shell: bash
+      env:
+        SSH_KEY: ${{ inputs.ssh_key }}
+        VPS_HOST: ${{ inputs.vps_host }}
+        VPS_USER: ${{ inputs.vps_user }}
+      run: |
+        missing=""
+        for name in SSH_KEY VPS_HOST VPS_USER; do
+          [ -n "${!name}" ] || missing="$missing $name"
+        done
+        if [ -n "$missing" ]; then
+          echo "::error::Set these GitHub variables/secrets before deploying the CMS:$missing"
+          exit 1
+        fi
+
+    - name: Setup SSH
+      shell: bash
+      env:
+        SSH_KEY: ${{ inputs.ssh_key }}
+      run: |
+        mkdir -p ~/.ssh
+        printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -p ${{ inputs.vps_port }} -H ${{ inputs.vps_host }} >> ~/.ssh/known_hosts 2>/dev/null
+
+    - name: Transfer compose file to server
+      shell: bash
+      run: |
+        INCOMING="/tmp/inspire-africa-cms-deploy"
+        ssh -p ${{ inputs.vps_port }} -o StrictHostKeyChecking=no \
+          ${{ inputs.vps_user }}@${{ inputs.vps_host }} "mkdir -p -m 700 ${INCOMING}"
+
+        scp -P ${{ inputs.vps_port }} -o StrictHostKeyChecking=no \
+          deploy/docker-compose.yml \
+          ${{ inputs.vps_user }}@${{ inputs.vps_host }}:${INCOMING}/
+
+    - name: Deploy on server
+      shell: bash
+      run: |
+        ssh -p ${{ inputs.vps_port }} -o StrictHostKeyChecking=no -o ServerAliveInterval=30 ${{ inputs.vps_user }}@${{ inputs.vps_host }} bash -s << 'ENDSSH'
+        set -euo pipefail
+
+        PROJECT_DIR="${{ inputs.project_dir }}"
+        IMAGE_TAG="${{ inputs.image_tag }}"
+        ROLLBACK_TAG="${IMAGE_TAG%:*}:rollback"
+        GITHUB_TOKEN="${{ inputs.github_token }}"
+        GITHUB_ACTOR="${{ github.actor }}"
+        INCOMING="/tmp/inspire-africa-cms-deploy"
+        HEALTH_URL="http://127.0.0.1:1337/_health"
+
+        # This login stays out of root's docker config, which the other apps on this server use.
+        DOCKER_CONFIG="$(mktemp -d)"
+        export DOCKER_CONFIG
+        trap 'rm -rf "$DOCKER_CONFIG" "$INCOMING"' EXIT
+
+        fail() { echo "!! $*"; exit 1; }
+
+        echo "==> Deploying the CMS: ${IMAGE_TAG}"
+
+        docker compose version > /dev/null 2>&1 || fail "docker compose v2 is required"
+        [ -d "${PROJECT_DIR}" ] || fail "${PROJECT_DIR} not found"
+        [ -f "${PROJECT_DIR}/.env" ] || fail "${PROJECT_DIR}/.env not found. The CMS secrets live there."
+        if [ -f "${PROJECT_DIR}/docker-compose.yml" ]; then
+          grep -qx 'name: inspire-africa' "${PROJECT_DIR}/docker-compose.yml" \
+            || fail "${PROJECT_DIR}/docker-compose.yml is not the inspire-africa stack. Refusing to deploy over it."
+        fi
+        [ -f "${INCOMING}/docker-compose.yml" ] || fail "the compose file did not reach the server"
+
+        cd "${PROJECT_DIR}"
+        COMPOSE="docker compose -f docker-compose.yml"
+
+        echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin > /dev/null
+        echo "==> Pulling ${IMAGE_TAG}"
+        docker pull "${IMAGE_TAG}" > /dev/null
+        NEW_IMAGE="$(docker image inspect --format '{{.Id}}' "${IMAGE_TAG}")"
+
+        # Tagged by id, so the rollback tag still names the old image once the new one is up.
+        CMS_CONTAINER="$($COMPOSE ps -q cms < /dev/null 2>/dev/null || true)"
+        PREVIOUS_IMAGE=""
+        if [ -n "${CMS_CONTAINER}" ]; then
+          PREVIOUS_IMAGE="$(docker inspect --format '{{.Image}}' "${CMS_CONTAINER}" 2>/dev/null || true)"
+        fi
+        if [ -n "${PREVIOUS_IMAGE}" ] && [ "${PREVIOUS_IMAGE}" != "${NEW_IMAGE}" ]; then
+          docker tag "${PREVIOUS_IMAGE}" "${ROLLBACK_TAG}"
+        fi
+
+        echo "==> Backing up the CMS database before the change"
+        mkdir -p backups
+        BACKUP="backups/cms-db-pre-deploy-$(date +%F-%H%M%S).sql"
+        if ! $COMPOSE exec -T db sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --triggers "$MYSQL_DATABASE"' < /dev/null > "${BACKUP}"; then
+          rm -f "${BACKUP}"
+          fail "the database backup failed. Nothing was changed."
+        fi
+        [ -s "${BACKUP}" ] || { rm -f "${BACKUP}"; fail "the database backup is empty. Nothing was changed."; }
+        ls -t backups/cms-db-pre-deploy-*.sql | tail -n +15 | xargs -r rm -f
+
+        # The previous compose file is kept so a rollback restores the stack that worked.
+        if [ -f docker-compose.yml ]; then
+          cp -p docker-compose.yml docker-compose.previous.yml
+        fi
+        mv "${INCOMING}/docker-compose.yml" docker-compose.yml
+
+        cms_answers() {
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "${HEALTH_URL}" || true)
+            if [ "${code}" = "204" ]; then
+              echo "✓ CMS answered on port 1337"
+              return 0
+            fi
+            echo "  Waiting for the CMS... (${i}/60) - HTTP ${code}"
+            sleep 3
+          done
+          return 1
+        }
+
+        echo "==> Starting the cms container"
+        started=yes
+        CMS_IMAGE="${IMAGE_TAG}" $COMPOSE up -d --no-deps cms < /dev/null || started=no
+
+        if [ "${started}" != "yes" ] || ! cms_answers; then
+          echo "✗ The new CMS image did not come up"
+          $COMPOSE logs --no-color --tail 80 cms < /dev/null || true
+          if [ -n "${PREVIOUS_IMAGE}" ] && [ "${PREVIOUS_IMAGE}" != "${NEW_IMAGE}" ]; then
+            echo "==> Rolling back to the previous image and compose file"
+            if [ -f docker-compose.previous.yml ]; then
+              mv docker-compose.previous.yml docker-compose.yml
+            fi
+            CMS_IMAGE="${ROLLBACK_TAG}" $COMPOSE up -d --no-deps cms < /dev/null || true
+            cms_answers || true
+            echo "!! Migrations may have run on the new image. If the old one misbehaves, restore ${BACKUP}."
+          fi
+          exit 1
+        fi
+
+        CMS_CONTAINER="$($COMPOSE ps -q cms < /dev/null)"
+        RUNNING_IMAGE="$(docker inspect --format '{{.Image}}' "${CMS_CONTAINER}")"
+        [ "${RUNNING_IMAGE}" = "${NEW_IMAGE}" ] || fail "the cms container runs ${RUNNING_IMAGE}, expected ${NEW_IMAGE}"
+
+        # Only this app's old images, keeping the one before for a rollback. This host is shared,
+        # so never a global prune.
+        for id in $(docker images --no-trunc -q "${IMAGE_TAG%:*}" | sort -u); do
+          if [ "${id}" != "${NEW_IMAGE}" ] && [ "${id}" != "${PREVIOUS_IMAGE}" ]; then
+            docker image rm "${id}" > /dev/null 2>&1 || true
+          fi
+        done
+
+        $COMPOSE ps --format "table {{.Service}}\t{{.Status}}\t{{.Image}}" < /dev/null
+
+        echo ""
+        echo "============================================"
+        echo "  CMS DEPLOYED: ${IMAGE_TAG}"
+        echo "============================================"
+        ENDSSH
