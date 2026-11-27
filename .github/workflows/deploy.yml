@@ -4,7 +4,7 @@ name: CMS CI/CD
 # from the commit CI tested, pushes it to GHCR, copies deploy/docker-compose.yml to the server and
 # recreates the cms container. The server's .env stays on the server.
 #
-# Docs-only pushes (docs/, *.md, render.yaml) do not redeploy. Run it by hand from "Run workflow" on main.
+# Every passing CI run on main deploys, including docs-only commits. Run it by hand from "Run workflow" on main.
 on:
   workflow_run:
     workflows: [CI]
@@ -40,23 +40,11 @@ jobs:
     outputs:
       image: ${{ steps.name.outputs.image }}
       sha: ${{ steps.name.outputs.sha }}
-      skip: ${{ steps.skip.outputs.skip }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-          fetch-depth: 2
-
-      - name: Skip docs-only commits
-        id: skip
-        if: github.event_name == 'workflow_run'
-        run: |
-          changed=$(git diff --name-only HEAD~1 HEAD | grep -Ev '^docs/|\.md$|^render\.yaml$' || true)
-          if [ -z "$changed" ]; then
-            echo "::notice::Only docs changed. Nothing to deploy."
-            echo "skip=1" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Name the image
         id: name
@@ -65,11 +53,9 @@ jobs:
           echo "sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
-        if: steps.skip.outputs.skip != '1'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
-        if: steps.skip.outputs.skip != '1'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -77,7 +63,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        if: steps.skip.outputs.skip != '1'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -96,7 +81,6 @@ jobs:
   # ============================================
   deploy:
     needs: build
-    if: needs.build.outputs.skip != '1'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
