@@ -74,15 +74,6 @@
         }
       }
     },
-    "heroImageCaption": {
-      "type": "string",
-      "description": "Caption shown under the cover image on the article.",
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      }
-    },
     "showHeroCaption": {
       "type": "boolean",
       "default": true,

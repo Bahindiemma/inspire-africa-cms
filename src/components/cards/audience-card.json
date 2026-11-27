@@ -41,10 +41,6 @@
     "photoAlt": {
       "type": "string"
     },
-    "photoCaption": {
-      "type": "string",
-      "description": "Caption shown under the photo."
-    },
     "showCaption": {
       "type": "boolean",
       "default": true,

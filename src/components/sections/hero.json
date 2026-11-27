@@ -60,6 +60,16 @@
       "type": "string",
       "description": "Optional second part of the yellow bar, e.g. \"3-tier readiness pipeline\"."
     },
+    "showCaption": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the caption under the hero photo. Off hides it and keeps the text in the CMS. The yellow bar is a separate tagline and is not affected."
+    },
+    "showCredit": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the \"Photo By: …\" credit on the hero photo."
+    },
     "centered": {
       "type": "boolean",
       "default": false,

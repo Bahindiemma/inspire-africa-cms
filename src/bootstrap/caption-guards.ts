@@ -2,15 +2,18 @@ import type { Core } from '@strapi/strapi';
 import { errors } from '@strapi/utils';
 
 /**
- * Every photo on the website shows a caption (2026-11-24). Publishing is
- * refused while a photo has none; drafts can still be saved, so an editor can
- * work on a page and add the caption before it goes live.
+ * A photo with a caption shows it under the photo. Publishing is refused while
+ * a photo that shows its caption has none. A photo whose "Show caption" switch
+ * is off needs no caption, since none is shown. Drafts can still be saved, so
+ * an editor can work on a page and add the caption before it goes live.
  *
  *  - Page: the hero photo, every audience card and every testimonial card with
- *    a photo needs "Photo caption". The hero's yellow bar (photoCaptionTitle /
- *    photoCaptionSub) is an optional tagline, not the caption.
- *  - Blog Post: the cover image needs "Image caption"; every Image block in the
- *    body needs its caption.
+ *    a photo needs "Photo caption" (unless its "Show caption" is off). The
+ *    hero's yellow bar (photoCaptionTitle / photoCaptionSub) is an optional
+ *    tagline, not the caption.
+ *  - Blog Post: the cover image needs "Image caption" (unless "Show caption" is
+ *    off); every Image block in the body needs its caption (unless its "Show
+ *    caption" is off).
  *
  * The fields are deliberately not `required` in the schemas: that would block
  * saving every existing entry. A caption is not the photographer credit (the
@@ -36,12 +39,12 @@ export function missingPageCaptions(sections: any[]): string[] {
   const missing: string[] = [];
   for (const s of sections ?? []) {
     if (s.__component === 'sections.hero') {
-      if (!s.centered && hasPhoto(s.photo, s.photoUrl) && !filled(s.photoCaption)) {
+      if (!s.centered && s.showCaption !== false && hasPhoto(s.photo, s.photoUrl) && !filled(s.photoCaption)) {
         missing.push('the hero photo ("Photo caption")');
       }
     } else if (s.__component === 'sections.audiences') {
       for (const c of s.cards ?? []) {
-        if (hasPhoto(c.photo, c.photoUrl) && !filled(c.photoCaption)) {
+        if (c.showCaption !== false && hasPhoto(c.photo, c.photoUrl) && !filled(c.photoCaption)) {
           missing.push(`the photo on the "${c.title || 'untitled'}" card ("Photo caption")`);
         }
       }
@@ -59,9 +62,11 @@ export function missingPageCaptions(sections: any[]): string[] {
 /** Plain-English names of the photos on a blog post draft that have no caption. */
 export function missingPostCaptions(post: any): string[] {
   const missing: string[] = [];
-  if (post?.heroImage && !filled(post.heroImageCaption)) missing.push('the cover image ("Image caption")');
+  if (post?.heroImage && post.showHeroCaption !== false && !filled(post.heroImageCaption)) {
+    missing.push('the cover image ("Image caption")');
+  }
   (post?.body ?? []).forEach((b: any, i: number) => {
-    if (b.__component === 'blocks.image' && b.image && !filled(b.caption)) {
+    if (b.__component === 'blocks.image' && b.image && b.showCaption !== false && !filled(b.caption)) {
       missing.push(`the Image block ${i + 1} in the body ("caption")`);
     }
   });
